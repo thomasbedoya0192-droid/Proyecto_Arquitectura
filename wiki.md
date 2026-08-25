@@ -41,6 +41,7 @@ sequenceDiagram
     end
     Service-->>View: Retornar Transacción exitosa
     View-->>Usuario: HTTP 201 Created (JSON)
+```
 
 ## 3. Visión de Escalabilidad y Preparación para un API Gateway
 El sistema está arquitectónicamente preparado para integrarse de manera limpia detrás de un **API Gateway** por las siguientes razones:
