@@ -4,11 +4,11 @@
 Para esta entrega, adaptamos la arquitectura tradicional de Django hacia una estructura basada en capas con el fin de garantizar el Principio de Responsabilidad Única (SRP) y lograr un desacoplamiento total del sistema.
 
 * **`models.py`:** Contiene estrictamente las entidades de dominio y las validaciones de integridad de datos a nivel de base de datos y entidad (como evitar saldos negativos o transferencias entre la misma cuenta).
-* **`services.py`:** Centraliza toda la lógica de negocio y los flujos transaccionales (como la ejecución de transferencias y validación de topes). Esto elimina por completo los anti-patrones de *Fat Views* o *Fat Models*[cite: 1].
-* **`serializers.py` y `views.py`:** Conforman la capa de presentación utilizando Django Rest Framework (DRF), dedicadas de forma exclusiva a la estructuración de datos de entrada/salida, validación de peticiones y control de códigos de estado HTTP (201, 400, 404, 409)[cite: 1].
-* **`patterns/`:** Aísla la lógica de los patrones creacionales requeridos[cite: 1]:
-  * **Builder (`builder.py`):** Encargado del ensamblaje paso a paso de la entidad compleja de Transacciones[cite: 1].
-  * **Factory (`factory.py`):** Gestiona la creación dinámica de variantes de dependencias externas (sistema de alertas y notificaciones)[cite: 1].
+* **`services.py`:** Centraliza toda la lógica de negocio y los flujos transaccionales (como la ejecución de transferencias y validación de topes). Esto elimina por completo los anti-patrones de *Fat Views* o *Fat Models*.
+* **`serializers.py` y `views.py`:** Conforman la capa de presentación utilizando Django Rest Framework (DRF), dedicadas de forma exclusiva a la estructuración de datos de entrada/salida, validación de peticiones y control de códigos de estado HTTP (201, 400, 404, 409).
+* **`patterns/`:** Aísla la lógica de los patrones creacionales requeridos:
+  * **Builder (`builder.py`):** Encargado del ensamblaje paso a paso de la entidad compleja de Transacciones.
+  * **Factory (`factory.py`):** Gestiona la creación dinámica de variantes de dependencias externas (sistema de alertas y notificaciones).
 
 ---
 
