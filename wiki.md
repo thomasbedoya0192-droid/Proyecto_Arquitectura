@@ -1,5 +1,4 @@
-# Wiki Técnica: Núcleo de Negocio y Exposición de API Profesional
-
+# Wiki Técnica
 ## 1. Justificación de la Estructura de Carpetas
 Para esta entrega, adaptamos la arquitectura tradicional de Django hacia una estructura basada en capas con el fin de garantizar el Principio de Responsabilidad Única (SRP) y lograr un desacoplamiento total del sistema.
 
