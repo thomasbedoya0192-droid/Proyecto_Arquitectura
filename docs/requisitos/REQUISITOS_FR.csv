@@ -1,0 +1,21 @@
+Codigo,Descripcion,Modulo,Prioridad,Complejidad,Horas,Estado
+FR01,Registrar transacción especificando monto, fecha, tipo (ingreso/gasto) y descripción.,Transacciones,Alta,Media,8,Diseño
+FR02,Visualizar un historial cronológico completo de las transacciones registradas por el usuario.,Transacciones,Alta,Baja,4,Diseño
+FR03,Calcular y mostrar el balance financiero total actualizando los datos en tiempo real.,Cálculos,Alta,Baja,2,Diseño
+FR04,Clasificar los gastos mediante una lista de categorías predefinidas.,Categorización,Alta,Media,6,Diseño
+FR05,Editar y eliminar cualquier transacción previamente guardada.,Transacciones,Alta,Media,6,Diseño
+FR06,Extraer automáticamente el monto y la descripción al procesar bloques de texto libre.,Entrada de Datos,Media,Alta,16,Planificación
+FR07,Crear y gestionar múltiples cuentas o carteras virtuales (ej. Banco, Efectivo).,Cuentas,Alta,Media,8,Diseño
+FR08,Asociar obligatoriamente cada transacción registrada a una cuenta virtual específica.,Cuentas,Alta,Baja,3,Diseño
+FR09,Generar un gráfico de resumen mensual que agrupe y totalice los gastos por categoría.,Reportes,Media,Alta,12,Planificación
+FR10,Filtrar el listado de transacciones utilizando rangos de fechas definidos por el usuario.,Búsqueda,Alta,Media,6,Diseño
+FR11,Establecer presupuestos mensuales por categoría y alertar cuando se aproxime al límite.,Presupuestos,Media,Media,10,Planificación
+FR12,Generar reportes en formato PDF exportables con resumen y gráficos.,Reportes,Media,Alta,14,Planificación
+FR13,Crear etiquetas personalizadas para organizar y clasificar transacciones de forma flexible.,Categorización,Baja,Media,8,Planificación
+FR14,Calcular indicadores de tendencia (promedio mensual, gasto máximo, ingreso mínimo).,Análisis,Media,Media,8,Planificación
+FR15,Búsqueda avanzada de transacciones por múltiples criterios (monto, descripción, categoría).,Búsqueda,Media,Media,10,Planificación
+FR16,Registrar un historial de cambios (auditoría) mostrando quién, cuándo y qué se modificó.,Auditoría,Baja,Media,10,Planificación
+FR17,Importar transacciones desde archivos CSV/Excel con validación automática de datos.,Importación,Media,Alta,15,Planificación
+FR18,Generar un análisis de flujo de caja mensual mostrando ingresos vs egresos.,Análisis,Media,Media,10,Planificación
+FR19,Establecer metas de ahorro y mostrar progreso visual hacia el cumplimiento.,Metas,Baja,Media,8,Planificación
+FR20,Sincronizar datos entre dispositivos manteniéndolos actualizados en tiempo real.,Sincronización,Media,Muy Alta,24,Planificación
