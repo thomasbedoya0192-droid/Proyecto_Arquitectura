@@ -1,0 +1,19 @@
+*.pem
+*.key
+*.id_rsa
+.env
+.env.*
+db.sqlite3
+__pycache__/
+*.pyc
+venv/
+data/
+
+# Frontend (React / Vite)
+frontend/node_modules/
+frontend/dist/
+
+# OS / Editores
+.DS_Store
+.idea/
+.vscode/
