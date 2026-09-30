@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - django
+      - flask-reportes
+    networks:
+      - finance-network
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+      - db-data:/data
+    environment:
+      - DATABASE_PATH=/data/db.sqlite3
+      - DEBUG=1
+    expose:
+      - "8000"
+    networks:
+      - finance-network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  flask-reportes:
+    build:
+      context: ./reportes_flask
+      dockerfile: Dockerfile
+    volumes:
+      - db-data:/data
+    environment:
+      - DATABASE_PATH=/data/db.sqlite3
+    expose:
+      - "5000"
+    networks:
+      - finance-network
+
+volumes:
+  db-data:
+
+networks:
+  finance-network:
+    driver: bridge
