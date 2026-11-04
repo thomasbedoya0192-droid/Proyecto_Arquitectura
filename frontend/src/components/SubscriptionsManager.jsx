@@ -31,7 +31,7 @@ export const SERVICES_CATALOG = [
   { id: 'otro', name: 'Otro / Personalizado', color: '#8B5CF6' },
 ];
 
-export function SubscriptionsManager({ usuario, cuentas }) {
+export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
   const [suscripciones, setSuscripciones] = useState([]);
   const [selectedCuentaFilter, setSelectedCuentaFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export function SubscriptionsManager({ usuario, cuentas }) {
 
   useEffect(() => {
     cargarSuscripciones();
-  }, [usuario.id, selectedCuentaFilter]);
+  }, [usuario.id, selectedCuentaFilter, autoDebitVersion]);
 
   const abrirModalNuevo = () => {
     setEditingSubId(null);

@@ -8,6 +8,8 @@ from .models import Transaccion
 from .serializers import TransaccionSerializer
 from .services import TransaccionService
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class ListaTransaccionesView(APIView):
     """Obtener historial de transacciones (por usuario o cuenta) o registrar una nueva."""
@@ -206,8 +208,12 @@ class RegistrarUsuarioView(APIView):
 
     def post(self, request):
         nombre = request.data.get('nombre', '').strip()
+        contrasena = request.data.get('contrasena', '')
+
         if not nombre:
             return Response({'error': 'El nombre de usuario es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not contrasena:
+            return Response({'error': 'La contraseña es requerida.'}, status=status.HTTP_400_BAD_REQUEST)
 
         username_clean = nombre.lower().replace(' ', '_')
 
@@ -217,7 +223,15 @@ class RegistrarUsuarioView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        usuario = User.objects.create(username=username_clean, first_name=nombre)
+        usuario = User(username=username_clean, first_name=nombre)
+
+        try:
+            validate_password(contrasena, user=usuario)
+        except ValidationError as e:
+            return Response({'error': ' '.join(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.set_password(contrasena)
+        usuario.save()
 
         return Response({
             'id': usuario.id,
@@ -231,8 +245,11 @@ class LoginUsuarioView(APIView):
 
     def post(self, request):
         nombre = request.data.get('nombre', '').strip()
+        contrasena = request.data.get('contrasena', '')
         if not nombre:
             return Response({'error': 'El nombre de usuario es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not contrasena:
+            return Response({'error': 'La contraseña es requerida.'}, status=status.HTTP_400_BAD_REQUEST)
 
         username_clean = nombre.lower().replace(' ', '_')
 
@@ -242,6 +259,12 @@ class LoginUsuarioView(APIView):
             return Response(
                 {'error': f'El usuario "{nombre}" no existe. Regístrate primero.'},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not usuario.check_password(contrasena):
+            return Response(
+                {'error': 'Contraseña incorrecta.'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
         return Response({

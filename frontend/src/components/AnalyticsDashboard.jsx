@@ -14,7 +14,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
     const obtenerCuentas = async () => {
       if (!usuario?.id) return;
       try {
-        const res = await api.get('/cuentas/');
+        const res = await api.get(`/cuentas/?usuario=${usuario.id}`);
         const misCuentas = res.data.filter((c) => c.usuario === usuario.id);
         setCuentas(misCuentas);
       } catch (e) {

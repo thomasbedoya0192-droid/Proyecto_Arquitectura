@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { ArrowUpRight, ArrowDownLeft, Trash2, Filter, ArrowRightLeft } from 'lucide-react';
 
-export function TransactionHistory({ usuario, cuentas, onDataChanged }) {
+export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataChanged }) {
   const [transacciones, setTransacciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tipoFiltro, setTipoFiltro] = useState(''); // '', 'ingreso', 'gasto', 'transferencia'
@@ -28,7 +28,7 @@ export function TransactionHistory({ usuario, cuentas, onDataChanged }) {
     if (usuario?.id) {
       cargarTransacciones();
     }
-  }, [usuario?.id, tipoFiltro, cuentaFiltro]);
+  }, [usuario?.id, tipoFiltro, cuentaFiltro, autoDebitVersion]);
 
   const handleEliminar = async (id) => {
     const confirmar = window.confirm('¿Deseas eliminar esta transacción? Se revertirá el saldo correspondiente.');

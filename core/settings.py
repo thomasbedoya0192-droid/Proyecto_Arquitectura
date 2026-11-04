@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,6 +84,16 @@ DATABASES = {
     }
 }
 
+
+# Password hashing
+# https://docs.djangoproject.com/en/6.1/topics/auth/passwords/
+# bcrypt primero: nuevas contraseñas se guardan con bcrypt; si alguna vez
+# hubiera hashes PBKDF2 antiguos, Django aún podría verificarlos con él.
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import (
     ListaCuentasView,
     RegistroCuentaView,
@@ -22,5 +22,8 @@ urlpatterns = [
     # Rutas para Metas de Ahorro
     path('metas/', ListaMetasAhorroView.as_view(), name='lista_metas'),
     path('metas/<int:pk>/abonar/', AbonarMetaAhorroView.as_view(), name='abonar_meta'),
+
+    # Rutas para IA Feedback
+    path('ia/', include('app.ia.urls')),
 ]
 

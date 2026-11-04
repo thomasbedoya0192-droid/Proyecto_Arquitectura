@@ -6,6 +6,7 @@ import { AccountsManager } from './components/AccountsManager';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
 import { GoalsManager } from './components/GoalsManager';
+import { Feedback } from './components/Feedback';
 import { Sidebar } from './components/Sidebar';
 import { NotificationToast } from './components/NotificationToast';
 import { Menu, LogOut } from 'lucide-react';
@@ -15,6 +16,10 @@ export default function App() {
   const [cuentas, setCuentas] = useState([]);
   const [suscripciones, setSuscripciones] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Se incrementa cada vez que termina de procesarse el auto-débito de
+  // suscripciones vencidas, para avisarle a los componentes hijos (que
+  // cargan sus propios datos por su cuenta) que deben refrescar.
+  const [autoDebitVersion, setAutoDebitVersion] = useState(0);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,9 +41,12 @@ export default function App() {
         try {
           // 1. Ejecutar auto-débitos pendientes
           await api.post('/suscripciones/procesar-autodebitos/', { usuario: usuario.id });
+          // Avisar a Dashboard/Suscripciones (que cargan sus propios datos)
+          // que ya pueden volver a pedirlos: el auto-débito ya se aplicó.
+          setAutoDebitVersion((v) => v + 1);
 
           // 2. Cargar cuentas actualizadas
-          const resCuentas = await api.get('/cuentas/');
+          const resCuentas = await api.get(`/cuentas/?usuario=${usuario.id}`);
           const uCuentas = resCuentas.data.filter((c) => c.usuario === usuario.id);
           setCuentas(uCuentas);
 
@@ -76,8 +84,8 @@ export default function App() {
         return 'Reportes y Estadísticas';
       case '/metas':
         return 'Metas Financieras de Ahorro';
-      case '/asistente':
-        return 'Asistente IA';
+      case '/feedback':
+        return 'Feedback Financiero';
       default:
         return 'Panel Financiero';
     }
@@ -120,10 +128,19 @@ export default function App() {
 
       <main style={styles.mainContent}>
         <Routes>
-          <Route path="/dashboard" element={<AccountsManager usuario={usuario} />} />
+          <Route
+            path="/dashboard"
+            element={<AccountsManager usuario={usuario} autoDebitVersion={autoDebitVersion} />}
+          />
           <Route
             path="/suscripciones"
-            element={<SubscriptionsManager usuario={usuario} cuentas={cuentas} />}
+            element={
+              <SubscriptionsManager
+                usuario={usuario}
+                cuentas={cuentas}
+                autoDebitVersion={autoDebitVersion}
+              />
+            }
           />
           <Route
             path="/analytics"
@@ -143,13 +160,17 @@ export default function App() {
                 cuentas={cuentas}
                 onRefreshData={() => {
                   // Re-cargar cuentas para refrescar el saldo disponible
-                  api.get('/cuentas/').then((res) => {
+                  api.get(`/cuentas/?usuario=${usuario.id}`).then((res) => {
                     const uCuentas = res.data.filter((c) => c.usuario === usuario.id);
                     setCuentas(uCuentas);
                   });
                 }}
               />
             }
+          />
+          <Route
+            path="/feedback"
+            element={<Feedback usuario={usuario} />}
           />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

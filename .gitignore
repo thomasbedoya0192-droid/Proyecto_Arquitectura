@@ -17,3 +17,12 @@ frontend/dist/
 .DS_Store
 .idea/
 .vscode/
+
+
+# Root node_modules (stray)
+/node_modules/
+
+#Logs
+app/migrations/*cache.py
+*.log
+

@@ -11,9 +11,12 @@ from transacciones.models import Transaccion
 from .services import procesar_autodebitos_suscripciones
 
 class ListaCuentasView(APIView):
-    """Endpoint para obtener todas las cuentas bancarias."""
+    """Lista las cuentas bancarias; con ?usuario=<id> devuelve solo las de ese usuario."""
     def get(self, request):
         cuentas = CuentaBancaria.objects.all()
+        usuario_id = request.query_params.get('usuario')
+        if usuario_id:
+            cuentas = cuentas.filter(usuario_id=usuario_id)
         serializer = CuentaBancariaSerializer(cuentas, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

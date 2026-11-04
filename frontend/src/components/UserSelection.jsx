@@ -5,22 +5,23 @@ import { LogIn, UserPlus } from 'lucide-react';
 export function UserSelection({ onUserSelect }) {
   const [modo, setModo] = useState('login'); // 'login' o 'registro'
   const [nombre, setNombre] = useState('');
+  const [contrasena, setContrasena] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!nombre.trim()) return;
+    if (!nombre.trim() || !contrasena) return;
 
     setLoading(true);
     setError('');
 
-    const endpoint = modo === 'login' 
-      ? '/transacciones/login-usuario/' 
+    const endpoint = modo === 'login'
+      ? '/transacciones/login-usuario/'
       : '/transacciones/registrar-usuario/';
 
     try {
-      const response = await api.post(endpoint, { nombre: nombre.trim() });
+      const response = await api.post(endpoint, { nombre: nombre.trim(), contrasena });
       // Guardar usuario en localStorage para persistencia de sesión
       localStorage.setItem('usuario_activo', JSON.stringify(response.data));
       onUserSelect(response.data);
@@ -68,6 +69,14 @@ export function UserSelection({ onUserSelect }) {
             placeholder="Username"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
+            style={styles.input}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
             style={styles.input}
             required
           />

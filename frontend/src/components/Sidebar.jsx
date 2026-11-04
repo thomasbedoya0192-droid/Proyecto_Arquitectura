@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { calcularDiasRestantes } from './NotificationToast';
-import { Home, BarChart3, Repeat, Bot, Target, LogOut, X } from 'lucide-react';
+import { Home, BarChart3, Repeat, Bot, Target, LogOut, X, Brain } from 'lucide-react';
 
 export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = [] }) {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
     },
     { path: '/analytics', label: 'Reportes y Estadísticas', icon: BarChart3 },
     { path: '/metas', label: 'Metas de Ahorro', icon: Target },
-    { path: '/ai-assistant', label: 'Asistente IA (Próximamente)', icon: Bot, disabled: true },
+    { path: '/feedback', label: 'Feedback', icon: Brain },
   ];
 
   return (

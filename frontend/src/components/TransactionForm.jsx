@@ -59,8 +59,12 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
 
       // Notificar al padre para recargar cuentas/historial
       onTransactionAdded();
-    } catch {
-      setError('Ocurrió un error al registrar la transacción.');
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('Ocurrió un error al registrar la transacción.');
+      }
     } finally {
       setLoading(false);
     }

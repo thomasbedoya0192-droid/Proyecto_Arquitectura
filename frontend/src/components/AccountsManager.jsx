@@ -6,7 +6,7 @@ import { TransactionHistory } from './TransactionHistory';
 import { AccountDetailModal } from './AccountDetailModal';
 import { TransferModal } from './TransferModal';
 
-export function AccountsManager({ usuario }) {
+export function AccountsManager({ usuario, autoDebitVersion }) {
   const [cuentas, setCuentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -24,7 +24,7 @@ export function AccountsManager({ usuario }) {
   const cargarCuentas = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/cuentas/');
+      const res = await api.get(`/cuentas/?usuario=${usuario.id}`);
       const cuentasUsuario = res.data.filter((c) => c.usuario === usuario.id);
       setCuentas(cuentasUsuario);
     } catch {
@@ -36,7 +36,7 @@ export function AccountsManager({ usuario }) {
 
   useEffect(() => {
     cargarCuentas();
-  }, [usuario.id]);
+  }, [usuario.id, autoDebitVersion]);
 
   const handleRefreshTodo = () => {
     cargarCuentas();
@@ -157,6 +157,7 @@ export function AccountsManager({ usuario }) {
         key={refreshKey}
         usuario={usuario}
         cuentas={cuentas}
+        autoDebitVersion={autoDebitVersion}
         onDataChanged={handleRefreshTodo}
       />
 
