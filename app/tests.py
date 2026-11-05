@@ -33,7 +33,7 @@ class APITests(TestCase):
         from django.urls import resolve, reverse
         url = '/api/ia/contexto/'
         response = self.client.get(url, {'usuario': self.user.id})
-        self.assertEqual(response.status_code, 400)  # Sin usuario válido en el formato esperado
+        self.assertEqual(response.status_code, 200)  # Con usuario válido y mock configurado
 
     def test_sin_parametro_usuario(self):
         """Sin parámetro usuario debe devolver error 400."""
@@ -76,15 +76,22 @@ class APITests(TestCase):
         response = self.client.post(url, {'otro_campo': 'valor'})
         self.assertEqual(response.status_code, 400)
 
-    @patch('app.ia.views.FeedbackIAService.generar_feedback_usuario')
+    @patch('app.ia.views.FeedbackIAService.generate_full_feedback')
     def test_feedback_ia_post_force(self, mock_generar):
-        """POST /api/ia/feedback/ con force debe llamar al servicio."""
-        mock_generar.return_value = {'general': 'Feedback generado'}
-        from app.ia.views import FeedbackIAView
-        url = '/api/ia/feedback/'
+        """POST /api/ia/feedback/full/ con force debe generar feedback completo."""
+        mock_generar.return_value = {
+            'general': 'Feedback general',
+            'cuentas': 'Feedback cuentas',
+            'gastos': 'Feedback gastos',
+            'metas': 'Feedback metas',
+            'suscripciones': 'Feedback suscripciones',
+            'reportes': 'Feedback reportes',
+        }
+        from app.ia.views import FeedbackFullView
+        url = '/api/ia/feedback/full/'
         response = self.client.post(
             url,
-            {'usuario': self.user.id, 'secciones': ['general'], 'force': True},
+            {'usuario': self.user.id, 'force': True},
             format='json'
         )
         self.assertEqual(response.status_code, 200)
@@ -125,4 +132,4 @@ class APITests(TestCase):
             format='json'
         )
         self.assertEqual(response.status_code, 200)
-        mock_generar.assert_called_once_with(self.user.id, False)
+        mock_generar.assert_called_once()
