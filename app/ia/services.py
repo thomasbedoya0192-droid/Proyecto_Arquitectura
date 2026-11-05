@@ -452,7 +452,7 @@ class FeedbackIAService:
         lines = answer.splitlines()
         for line in lines:
             stripped = line.strip()
-            if stripped.upper().endswith(':') and stripped.upper()[:-1] in ('GENERAL','CUENTAS','GASTOS','METAS','SUSCRIPCIONES','REPORTES'):
+            if stripped.upper().replace('**', '').endswith(':') and stripped.upper().replace('**', '')[:-1] in ('GENERAL','CUENTAS','GASTOS','METAS','SUSCRIPCIONES','REPORTES'):
                 current = stripped.upper()[:-1].lower()
                 sections[current] = ''
             elif current:
