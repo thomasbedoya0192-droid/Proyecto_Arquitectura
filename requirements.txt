@@ -2,6 +2,7 @@ asgiref
 bcrypt
 certifi
 charset-normalizer
+djangorestframework-simplejwt
 django-cors-headers
 Django
 djangorestframework
@@ -11,7 +12,6 @@ gunicorn
 psycopg2-binary
 python-dotenv
 pytz
-rest-framework-simplejwt
 requests
 sqlparse
 urllib3

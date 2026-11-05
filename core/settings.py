@@ -8,6 +8,7 @@ import dj_database_url
 import os
 
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 
@@ -129,16 +130,43 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# REST Framework config
+# JWT Authentication Configuration
+# ---------------------------------
+# Using JWT (JSON Web Token) for service-to-service authentication.
+# The same secret key is shared with Flask microservices so they can validate
+# tokens independently without contacting Django each time.
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-to-a-super-secret-jwt-key")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRES_IN = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_IN", "1200"))  # seconds
+
+# REST Framework authentication classes
+# Using JWTAuthentication from rest_framework_simplejwt
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_VIEW_TITLE": "FinancEZ API",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+# Simple JWT configuration
+SIMPLE_JWT = {
+    "SIGNING_KEY": JWT_SECRET_KEY,
+    "ALGORITHM": JWT_ALGORITHM,
+    "AUTH_HEADER_TYPES": ("JWT",),
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLAMM": False,
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRES_IN),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
