@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+
+  db:
+    image: postgres:15
+    container_name: postgres_core
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=core_user
+      - POSTGRES_PASSWORD=core_pass
+      - POSTGRES_DB=core
+    volumes:
+      - postgres_core_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core_user -d core"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  payments-db:
+    image: postgres:15
+    container_name: postgres_payments
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=payments_user
+      - POSTGRES_PASSWORD=payments_pass
+      - POSTGRES_DB=payments
+    volumes:
+      - postgres_payments_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payments_user -d payments"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-db:
+    image: postgres:15
+    container_name: postgres_ai
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=ai_user
+      - POSTGRES_PASSWORD=ai_pass
+      - POSTGRES_DB=ai
+    volumes:
+      - postgres_ai_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_user -d ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  django-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - DJANGO_SETTINGS_MODULE=core.settings
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_core_data:
+  postgres_payments_data:
+  postgres_ai_data:
