@@ -2,13 +2,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 from .models import CuentaBancaria, Suscripcion
 from .models import MetaAhorro
 from .serializers import CuentaBancariaSerializer, SuscripcionSerializer
 from .serializers import MetaAhorroSerializer
 from transacciones.models import Transaccion
 from .services import procesar_autodebitos_suscripciones
+
 
 class ListaCuentasView(APIView):
     """Lista las cuentas bancarias; con ?usuario=<id> devuelve solo las de ese usuario."""
@@ -28,7 +31,7 @@ class RegistroCuentaView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 
 class DetalleCuentaBancariaView(APIView):
@@ -45,7 +48,7 @@ class DetalleCuentaBancariaView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         cuenta = get_object_or_404(CuentaBancaria, pk=pk)
@@ -55,7 +58,7 @@ class DetalleCuentaBancariaView(APIView):
             cuenta.delete()
 
         return Response(
-            {"mensaje": "Cuenta bancaria y sus transacciones asociadas eliminadas correctamente."},
+            _({"mensaje": "Cuenta bancaria y sus transacciones asociadas eliminadas correctamente."}),
             status=status.HTTP_204_NO_CONTENT
         )
 
@@ -74,7 +77,7 @@ class ListaSuscripcionesView(APIView):
             suscripciones = suscripciones.filter(cuenta_id=cuenta_id)
 
         if not usuario_id and not cuenta_id:
-            return Response({'error': 'Se requiere al menos el parámetro usuario o cuenta'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(_('Se requiere al menos el parámetro usuario o cuenta'), status=status.HTTP_400_BAD_REQUEST)
 
         suscripciones = suscripciones.order_by('fecha_proximo_pago')
         serializer = SuscripcionSerializer(suscripciones, many=True)
@@ -85,7 +88,7 @@ class ListaSuscripcionesView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 
 class DetalleSuscripcionView(APIView):
@@ -96,25 +99,27 @@ class DetalleSuscripcionView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         suscripcion = get_object_or_404(Suscripcion, pk=pk)
         suscripcion.delete()
-        return Response({'mensaje': 'Suscripción eliminada correctamente'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(_({'mensaje': 'Suscripción eliminada correctamente'}), status=status.HTTP_204_NO_CONTENT)
+
 
 class ProcesarAutoDebitosView(APIView):
     """Endpoint para verificar y procesar automáticamente los cobros de suscripciones del día."""
     def post(self, request):
         usuario_id = request.data.get('usuario')
         if not usuario_id:
-            return Response({'error': 'El parámetro usuario es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(_('El parámetro usuario es requerido'), status=status.HTTP_400_BAD_REQUEST)
 
         procesadas = procesar_autodebitos_suscripciones(usuario_id=usuario_id)
         return Response({
-            'mensaje': f"Se procesaron {len(procesadas)} cobros de suscripciones automáticos.",
+            'mensaje': _('Se procesaron {count} cobros de suscripciones automáticos.').format(count=len(procesadas)),
             'detalles': procesadas
         }, status=status.HTTP_200_OK)
+
 
 class ListaMetasAhorroView(APIView):
     """Listar todas las metas del usuario o crear una nueva."""
@@ -122,7 +127,7 @@ class ListaMetasAhorroView(APIView):
     def get(self, request):
         usuario_id = request.query_params.get('usuario')
         if not usuario_id:
-            return Response({'error': 'El parámetro usuario es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(_('El parámetro usuario es requerido'), status=status.HTTP_400_BAD_REQUEST)
         
         metas = MetaAhorro.objects.filter(usuario_id=usuario_id).order_by('-fecha_creacion')
         serializer = MetaAhorroSerializer(metas, many=True)
@@ -133,7 +138,7 @@ class ListaMetasAhorroView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(_(serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
 
 class AbonarMetaAhorroView(APIView):
@@ -143,13 +148,13 @@ class AbonarMetaAhorroView(APIView):
         try:
             meta = MetaAhorro.objects.get(pk=pk)
         except MetaAhorro.DoesNotExist:
-            return Response({'error': 'Meta de ahorro no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(_('Meta de ahorro no encontrada.'), status=status.HTTP_404_NOT_FOUND)
 
         monto = float(request.data.get('monto', 0))
         accion = request.data.get('accion', 'abonar') # 'abonar' o 'liberar'
 
         if monto <= 0:
-            return Response({'error': 'El monto debe ser mayor a cero.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(_('El monto debe ser mayor a cero.'), status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             cuenta = meta.cuenta
@@ -161,17 +166,13 @@ class AbonarMetaAhorroView(APIView):
 
             if accion == 'abonar':
                 if monto > disponible_actual:
-                    return Response({
-                        'error': f'No tienes suficiente saldo libre en {cuenta.nombre}. Disponible: ${disponible_actual:.2f}'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(_(f'No tienes suficiente saldo libre en {cuenta.nombre}. Disponible: ${disponible_actual:.2f}'), status=status.HTTP_400_BAD_REQUEST)
                 
                 meta.monto_actual = float(meta.monto_actual) + monto
 
             elif accion == 'liberar':
                 if monto > float(meta.monto_actual):
-                    return Response({
-                        'error': f'No puedes liberar más dinero del abonado en esta meta. Abonado actual: ${meta.monto_actual:.2f}'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(_(f'No puedes liberar más dinero del abonado en esta meta. Abonado actual: ${meta.monto_actual:.2f}'), status=status.HTTP_400_BAD_REQUEST)
                 
                 meta.monto_actual = float(meta.monto_actual) - monto
 
@@ -179,12 +180,26 @@ class AbonarMetaAhorroView(APIView):
 
         return Response(MetaAhorroSerializer(meta).data, status=status.HTTP_200_OK)
 
+
+class FeedbackAccessCheck(APIView):
+    """Verificar si el usuario puede acceder al Feedback Financiero basado en su plan."""
+    def get(self, request):
+        usuario = request.user
+        perfil, creado = Perfil.objects.get_or_create(user=usuario)
+        puede_acceder = perfil.plan == 'premium'
+        return Response({
+            'puede_acceder': puede_acceder,
+            'plan_actual': perfil.plan,
+            'upgraded_at': perfil.upgraded_at
+        }, status=status.HTTP_200_OK)
+
+
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class LoginJWTView(APIView):
     """Login endpoint that issues JWT tokens for service authentication.
-    
+
     Returns a pair of access and refresh tokens. The access token can be used
     by Flask microservices to authenticate API calls without contacting Django.
     """
@@ -194,24 +209,17 @@ class LoginJWTView(APIView):
         
         if not username or not password:
             return Response(
-                {'error': 'Username and password are required.'},
+                {'error': _('Username and password are required.')},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        from django.contrib.auth import authenticate
         user = authenticate(username=username, password=password)
-        
-        if user is None:
-            return Response(
-                {'error': 'Invalid credentials.'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-        
-        refresh = RefreshToken.for_user(user)
-        
-        return Response({
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh),
-            'user_id': user.id,
-            'username': user.username,
-        }, status=status.HTTP_200_OK)
+        if user:
+            token = RefreshToken.for_user(user)
+            return Response({
+                'access_token': str(token.access_token),
+                'refresh_token': str(token)
+            })
+        return Response(
+            {'error': _('Invalid credentials.')},
+            status=status.HTTP_400_BAD_REQUEST
+        )

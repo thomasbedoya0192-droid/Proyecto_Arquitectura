@@ -134,6 +134,25 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core_user -d core || curl -f http://127.0.0.1:8000/ || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://127.0.0.1:8000/api
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_core_data:

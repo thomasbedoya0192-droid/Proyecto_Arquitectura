@@ -1,13 +1,28 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+
+class Perfil(models.Model):
+    PLAN_CHOICES = [
+        ('free', _('Free')),
+        ('premium', _('Premium')),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='free')
+    upgraded_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.plan} plan"
+
 
 class CuentaBancaria(models.Model):
     TIPO_CHOICES = [
-        ('Ahorros', 'Cuenta de Ahorros'),
-        ('Corriente', 'Cuenta Corriente'),
-        ('Billetera Digital', 'Billetera Digital'),
-        ('Tarjeta de Crédito', 'Tarjeta de Crédito'),
+        ('Ahorros', _('Cuenta de Ahorros')),
+        ('Corriente', _('Cuenta Corriente')),
+        ('Billetera Digital', _('Billetera Digital')),
+        ('Tarjeta de Crédito', _('Tarjeta de Crédito')),
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cuentas')
@@ -23,8 +38,8 @@ class CuentaBancaria(models.Model):
 
 class Suscripcion(models.Model):
     FRECUENCIA_CHOICES = [
-        ('Mensual', 'Mensual'),
-        ('Anual', 'Anual'),
+        ('Mensual', _('Mensual')),
+        ('Anual', _('Anual')),
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suscripciones')
@@ -54,21 +69,21 @@ class MetaAhorro(models.Model):
 
 class FeedbackIA(models.Model):
     SECCIONES = [
-        ('general', 'General'),
-        ('cuentas', 'Cuentas'),
-        ('gastos', 'Gastos'),
-        ('metas', 'Metas de Ahorro'),
-        ('suscripciones', 'Suscripciones'),
-        ('reportes', 'Reportes y Estadísticas'),
+        ('general', _('General')),
+        ('cuentas', _('Cuentas')),
+        ('gastos', _('Gastos')),
+        ('metas', _('Metas de Ahorro')),
+        ('suscripciones', _('Suscripciones')),
+        ('reportes', _('Reportes y Estadísticas')),
     ]
     
     TRIGGERS = [
-        ('weekly', 'Semanal'),
-        ('new_meta', 'Nueva Meta'),
-        ('new_suscripcion', 'Nueva Suscripción'),
-        ('large_gasto', 'Gasto Grande'),
-        ('meta_cumplida', 'Meta Cumplida'),
-        ('manual', 'Manual'),
+        ('weekly', _('Semanal')),
+        ('new_meta', _('Nueva Meta')),
+        ('new_suscripcion', _('Nueva Suscripción')),
+        ('large_gasto', _('Gasto Grande')),
+        ('meta_cumplida', _('Meta Cumplida')),
+        ('manual', _('Manual')),
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks_ia')

@@ -5,8 +5,8 @@ import { UserSelection } from './components/UserSelection';
 import { AccountsManager } from './components/AccountsManager';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
-import { GoalsManager } from './components/GoalsManager';
 import { Feedback } from './components/Feedback';
+import { PlanGate } from './components/PlanGate';
 import { Sidebar } from './components/Sidebar';
 import { NotificationToast } from './components/NotificationToast';
 import { Menu, LogOut } from 'lucide-react';
@@ -102,6 +102,8 @@ export default function App() {
 
   return (
     <div style={styles.appContainer}>
+      <PlanGate />
+
       <Sidebar
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
@@ -116,6 +118,7 @@ export default function App() {
             <Menu size={22} color="#f8fafc" />
           </button>
           <h1 style={styles.title}>{getPageTitle(location.pathname)}</h1>
+          <LanguageSelector />
         </div>
 
         <div style={styles.userSection}>
@@ -172,6 +175,7 @@ export default function App() {
             path="/feedback"
             element={<Feedback usuario={usuario} />}
           />
+          <Route path="/plan" element={<PlanPage usuario={usuario} />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>

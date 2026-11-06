@@ -9,6 +9,7 @@ from .views import (
     ListaMetasAhorroView,
     AbonarMetaAhorroView,
     LoginJWTView,
+    FeedbackAccessCheck,
 )
 
 urlpatterns = [
@@ -26,6 +27,7 @@ urlpatterns = [
 
     # Rutas para IA Feedback
     path('ia/', include('app.ia.urls')),
+    path('ia/feedback/access-check/', FeedbackAccessCheck.as_view(), name='feedback_access_check'),
     
     # JWT Authentication
     path('auth/login/', LoginJWTView.as_view(), name='login_jwt'),
