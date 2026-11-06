@@ -174,14 +174,11 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
               >
                 <option value="">Selecciona la cuenta de origen</option>
                 {Array.isArray(cuentas) ? (
-                  <select>
-                    <option value="">Selecciona la cuenta de origen</option>
-                    {cuentas.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre} (Disponible: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
-                      </option>
-                    ))}
-                  </select>
+                  cuentas.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre} (Disponible: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
+                    </option>
+                  ))
                 ) : (
                   <option value="">Cuentas no disponibles</option>
                 )}
