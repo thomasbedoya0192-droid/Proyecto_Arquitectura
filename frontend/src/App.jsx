@@ -6,6 +6,7 @@ import { AccountsManager } from './components/AccountsManager';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
 import { Feedback } from './components/Feedback';
+import { GoalsManager } from './components/GoalsManager';
 import { PlanGate } from './components/PlanGate';
 import { Sidebar } from './components/Sidebar';
 import { NotificationToast } from './components/NotificationToast';

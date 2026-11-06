@@ -1,7 +1,7 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { I18nextProvider, useTranslation } from 'react-i18next';
+import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 import LanguageSelector from './components/LanguageSelector';
 import App from './App';
@@ -106,7 +106,8 @@ i18n
     }
   })
   .then(() => {
-    ReactDOM.render(
+    const root = createRoot(document.getElementById('root'));
+    root.render(
       <React.StrictMode>
         <BrowserRouter>
           <I18nextProvider i18n={i18n}>
@@ -114,18 +115,17 @@ i18n
             <App />
           </I18nextProvider>
         </BrowserRouter>
-      </React.StrictMode>,
-      document.getElementById('root')
+      </React.StrictMode>
     );
   })
   .catch((error) => {
     console.error('i18n initialization error:', error);
-    ReactDOM.render(
+    const root = createRoot(document.getElementById('root'));
+    root.render(
       <React.StrictMode>
         <BrowserRouter>
           <App />
         </BrowserRouter>
-      </React.StrictMode>,
-      document.getElementById('root')
+      </React.StrictMode>
     );
   });

@@ -6,17 +6,15 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
   const [metas, setMetas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [showAbonoModal, setShowAbonoModal] = useState(null); // meta activa para abonar/liberar
+  const [showAbonoModal, setShowAbonoModal] = useState(null);
 
-  // Estado del formulario de nueva meta
   const [nombre, setNombre] = useState('');
   const [cuentaId, setCuentaId] = useState('');
   const [montoObjetivo, setMontoObjetivo] = useState('');
   const [fechaLimite, setFechaLimite] = useState('');
 
-  // Estado del modal de abono/liberación
   const [montoAbono, setMontoAbono] = useState('');
-  const [accion, setAccion] = useState('abonar'); // 'abonar' o 'liberar'
+  const [accion, setAccion] = useState('abonar');
   const [errorMsg, setErrorMsg] = useState('');
 
   const cargarMetas = async () => {
@@ -24,9 +22,10 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
     try {
       setLoading(true);
       const res = await api.get(`/metas/?usuario=${usuario.id}`);
-      setMetas(res.data);
+      setMetas(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Error al cargar metas:', err);
+      setMetas([]);
     } finally {
       setLoading(false);
     }
@@ -96,6 +95,8 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
 
       {loading ? (
         <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>Cargando metas de ahorro...</p>
+      ) : !Array.isArray(metas) ? (
+        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>Error al cargar metas</p>
       ) : metas.length === 0 ? (
         <div style={styles.emptyCard}>
           <Target size={40} color="#8b5cf6" />
@@ -116,7 +117,6 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                 <PiggyBank size={24} color="#8b5cf6" />
               </div>
 
-              {/* Barra de progreso */}
               <div style={{ marginTop: '1.2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
                   <span style={{ color: '#94a3b8' }}>Abonado: ${Math.round(meta.monto_actual).toLocaleString('es-CO')}</span>
@@ -173,11 +173,18 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                 required
               >
                 <option value="">Selecciona la cuenta de origen</option>
-                {cuentas.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre} (Disponible: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
-                  </option>
-                ))}
+                {Array.isArray(cuentas) ? (
+                  <select>
+                    <option value="">Selecciona la cuenta de origen</option>
+                    {cuentas.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre} (Disponible: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <option value="">Cuentas no disponibles</option>
+                )}
               </select>
 
               <input

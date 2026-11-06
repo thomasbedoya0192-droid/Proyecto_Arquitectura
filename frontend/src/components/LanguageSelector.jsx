@@ -3,16 +3,17 @@ import { useTranslation } from 'react-i18next';
 import api from '../api';
 
 const LanguageSelector = () => {
+  const { i18n } = useTranslation();
   const [locale, setLocale] = useState(() => {
     const saved = sessionStorage.getItem('selected_locale');
-    return saved || 'es';
+    return saved || i18n.language || 'es';
   });
 
   useEffect(() => {
     sessionStorage.setItem('selected_locale', locale);
     api.defaults.headers['Accept-Language'] = locale;
     i18n.changeLanguage(locale);
-  }, [locale]);
+  }, [locale, i18n]);
 
   const changeLocale = (newLocale) => {
     setLocale(newLocale);
