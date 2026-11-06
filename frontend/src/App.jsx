@@ -10,6 +10,8 @@ import { GoalsManager } from './components/GoalsManager';
 import { PlanGate } from './components/PlanGate';
 import { Sidebar } from './components/Sidebar';
 import { NotificationToast } from './components/NotificationToast';
+import LanguageSelector from './components/LanguageSelector';
+import PlanPage from './components/PlanPage';
 import { Menu, LogOut } from 'lucide-react';
 
 export default function App() {

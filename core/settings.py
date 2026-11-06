@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "transacciones",
     "app",
@@ -169,14 +170,14 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "SIGNING_KEY": JWT_SECRET_KEY,
     "ALGORITHM": JWT_ALGORITHM,
-    "AUTH_HEADER_TYPES": ("JWT",),
+    "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_CLAIM": "user_id",
-    "AUTH_TOKEN_CLAMM": False,
+    "AUTH_TOKEN_CLAIM": "token",
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
     "SLIDING_TOKEN_LIFETIME": timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRES_IN),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
 # CORS Configuration (django-cors-headers)
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
