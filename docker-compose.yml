@@ -64,6 +64,54 @@ services:
       timeout: 5s
       retries: 5
 
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    restart: unless-stopped
+    command: ["celery", "-A", "core", "worker", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - DJANGO_SETTINGS_MODULE=core.settings
+    volumes:
+      - .:/app
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_beat
+    restart: unless-stopped
+    command: ["celery", "-A", "core", "beat", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - DJANGO_SETTINGS_MODULE=core.settings
+    volumes:
+      - .:/app
+
   django-api:
     build:
       context: .
@@ -71,8 +119,6 @@ services:
     container_name: django_api
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
