@@ -181,16 +181,21 @@ class AbonarMetaAhorroView(APIView):
         return Response(MetaAhorroSerializer(meta).data, status=status.HTTP_200_OK)
 
 
+from billing.models import Subscription
+
+
 class FeedbackAccessCheck(APIView):
-    """Verificar si el usuario puede acceder al Feedback Financiero basado en su plan."""
+    """Verificar si el usuario puede acceder al Feedback Financiero basado en su suscripción."""
     def get(self, request):
         usuario = request.user
-        perfil, creado = Perfil.objects.get_or_create(user=usuario)
-        puede_acceder = perfil.plan == 'premium'
+        subscription, _ = Subscription.objects.get_or_create(user=usuario)
+        subscription.check_and_expire()  # Auto-expire if needed
+        puede_acceder = subscription.is_premium()
         return Response({
             'puede_acceder': puede_acceder,
-            'plan_actual': perfil.plan,
-            'upgraded_at': perfil.upgraded_at
+            'plan_actual': subscription.plan,
+            'current_period_end': subscription.current_period_end,
+            'cancel_at_period_end': subscription.cancel_at_period_end,
         }, status=status.HTTP_200_OK)
 
 

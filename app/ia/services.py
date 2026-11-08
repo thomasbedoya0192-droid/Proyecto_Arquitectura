@@ -474,8 +474,16 @@ class FeedbackIAService:
 
         # prepare master prompt
         prompt = MASTER_PROMPT.format(context=json.dumps(full_ctx, ensure_ascii=False, indent=2))
-        respuesta, tokens = get_llm_client().completar(prompt, max_tokens=1500)
-        sections = cls._parse_master_answer(respuesta)
+        
+        try:
+            respuesta, tokens = get_llm_client().completar(prompt, max_tokens=1500)
+            sections = cls._parse_master_answer(respuesta)
+        except Exception as e:
+            # Return error for all sections if LLM call fails
+            error_msg = f"Error generando feedback: {str(e)}"
+            sections = {sec: error_msg for sec in SECCIONES}
+            # Don't persist/cache failed sections
+            return sections
 
         # persist each section in FeedbackIA
         for sec, txt in sections.items():

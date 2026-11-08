@@ -4,6 +4,19 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
+// Endpoints that should NOT trigger token refresh on 401
+const AUTH_ENDPOINTS = [
+  '/transacciones/login-usuario/',
+  '/transacciones/registrar-usuario/',
+  '/auth/login/',
+  '/auth/token/refresh/',
+];
+
+const isAuthEndpoint = (url) => {
+  if (!url) return false;
+  return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
+};
+
 // Add auth token from localStorage to every request
 api.interceptors.request.use((config) => {
   const userStr = localStorage.getItem('usuario_activo');
@@ -25,7 +38,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip token refresh for auth endpoints (wrong password legitimately returns 401)
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint(originalRequest.url)) {
       originalRequest._retry = true;
       try {
         const userStr = localStorage.getItem('usuario_activo');

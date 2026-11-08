@@ -2,10 +2,21 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
 from app.ia.services import FeedbackIAService
+from billing.models import Subscription
+
+
+def _is_user_premium(user):
+    """Check if user has active premium subscription."""
+    try:
+        subscription = Subscription.objects.get(user=user)
+        subscription.check_and_expire()
+        return subscription.is_premium()
+    except Subscription.DoesNotExist:
+        return False
 
 
 class Command(BaseCommand):
-    help = 'Genera feedback semanal de IA para todos los usuarios activos'
+    help = 'Genera feedback semanal de IA para usuarios premium activos'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -27,9 +38,24 @@ class Command(BaseCommand):
             usuarios = User.objects.filter(pk=usuario_id)
             self.stdout.write(f"Generando feedback para usuario {usuario_id}...")
         else:
-            # Usuarios que tienen al menos una cuenta
-            usuarios = User.objects.filter(cuentas__isnull=False).distinct()
-            self.stdout.write(f"Generando feedback semanal para {usuarios.count()} usuarios...")
+            # Solo usuarios premium activos con al menos una cuenta
+            usuarios = User.objects.filter(
+                cuentas__isnull=False,
+                subscription__plan='premium',
+                subscription__status='active'
+            ).distinct()
+            # Filter out expired/canceled at period end
+            premium_users = []
+            for u in usuarios:
+                try:
+                    sub = Subscription.objects.get(user=u)
+                    sub.check_and_expire()
+                    if sub.is_premium():
+                        premium_users.append(u)
+                except Subscription.DoesNotExist:
+                    continue
+            usuarios = premium_users
+            self.stdout.write(f"Generando feedback semanal para {len(usuarios)} usuarios premium...")
         
         total_procesados = 0
         total_errores = 0

@@ -49,15 +49,34 @@ export function Feedback({ usuario }) {
   const handleRegenerar = async (secciones = null) => {
     setGenerating(true);
     try {
-      await api.post('/ia/feedback/', { 
+      const res = await api.post('/ia/feedback/', { 
         usuario: usuario.id, 
         secciones 
       });
+      
+      if (res.data.errores) {
+        // Partial success with errors - show details
+        const failedSections = Object.entries(res.data.errores)
+          .map(([sec, err]) => `${sec}: ${err}`)
+          .join('\n');
+        alert(`Feedback generado parcialmente con errores:\n\n${failedSections}`);
+      }
+      
       await fetchFeedback();
       await fetchStats();
     } catch (e) {
       console.error('Error regenerando feedback:', e);
-      alert('Error al generar feedback. Verifica la API key en el backend.');
+      if (e.response?.data?.errores) {
+        // HTTP 207 - partial errors
+        const failedSections = Object.entries(e.response.data.errores)
+          .map(([sec, err]) => `${sec}: ${err}`)
+          .join('\n');
+        alert(`Feedback generado parcialmente con errores:\n\n${failedSections}`);
+      } else if (e.response?.data?.error) {
+        alert(`Error: ${e.response.data.error}`);
+      } else {
+        alert('Error al generar feedback. Verifica la API key en el backend.');
+      }
     } finally {
       setGenerating(false);
     }

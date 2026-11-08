@@ -5,11 +5,25 @@ from django.db import transaction
 from app.models import MetaAhorro, Suscripcion, CuentaBancaria
 from transacciones.models import Transaccion
 from app.ia.services import FeedbackIAService
+from billing.models import Subscription
+
+
+def _is_user_premium(usuario_id):
+    """Check if user has active premium subscription."""
+    try:
+        subscription = Subscription.objects.get(user_id=usuario_id)
+        subscription.check_and_expire()
+        return subscription.is_premium()
+    except Subscription.DoesNotExist:
+        return False
 
 
 @receiver(post_save, sender=MetaAhorro)
 def meta_ahorro_creada_o_actualizada(sender, instance, created, **kwargs):
     """Dispara feedback cuando se crea o cumple una meta"""
+    if not _is_user_premium(instance.usuario_id):
+        return
+        
     if created:
         transaction.on_commit(lambda: FeedbackIAService.generar_feedback_usuario(
             instance.usuario_id, ['metas', 'general'], 'new_meta'
@@ -25,6 +39,9 @@ def meta_ahorro_creada_o_actualizada(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Suscripcion)
 def suscripcion_creada_o_actualizada(sender, instance, created, **kwargs):
     """Dispara feedback cuando se crea una suscripción"""
+    if not _is_user_premium(instance.usuario_id):
+        return
+        
     if created:
         transaction.on_commit(lambda: FeedbackIAService.generar_feedback_usuario(
             instance.usuario_id, ['suscripciones', 'general'], 'new_suscripcion'
@@ -34,6 +51,9 @@ def suscripcion_creada_o_actualizada(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Transaccion)
 def transaccion_creada(sender, instance, created, **kwargs):
     """Verifica gastos grandes para disparar feedback"""
+    if not _is_user_premium(instance.usuario_id):
+        return
+        
     if created and instance.tipo == 'gasto':
         from decimal import Decimal
         monto = Decimal(str(instance.monto))
@@ -46,6 +66,9 @@ def transaccion_creada(sender, instance, created, **kwargs):
 
 def _verificar_gasto_grande_async(usuario_id: int, cuenta_id: int, monto):
     """Verificación async de gasto grande"""
+    if not _is_user_premium(usuario_id):
+        return
+        
     try:
         if FeedbackIAService.verificar_gasto_grande(usuario_id, cuenta_id, monto):
             FeedbackIAService.generar_feedback_usuario(

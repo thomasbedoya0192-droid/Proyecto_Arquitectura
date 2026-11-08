@@ -180,7 +180,20 @@ class Subscription(models.Model):
         return f"{self.user.username} - {self.plan} ({self.status})"
 
     def is_premium(self):
-        return self.plan == 'premium' and self.status == 'active'
+        """Return True if user has active premium access.
+        
+        Premium is active when:
+        - plan is 'premium' AND status is 'active', OR
+        - plan is 'premium' AND status is 'canceled' AND cancel_at_period_end is True 
+          AND current_period_end is in the future (grace period until period ends)
+        """
+        if self.plan != 'premium':
+            return False
+        if self.status == 'active':
+            return True
+        if self.status == 'canceled' and self.cancel_at_period_end:
+            return self.current_period_end and timezone.now() < self.current_period_end
+        return False
 
     def activate_premium(self):
         """Activate premium plan for 30 days"""
@@ -203,8 +216,24 @@ class Subscription(models.Model):
         self.save()
 
     def check_and_expire(self):
-        """Check if premium period expired"""
-        if self.is_premium() and self.current_period_end and timezone.now() > self.current_period_end:
+        """Check if premium period expired.
+        
+        Handles both active and canceled premium subscriptions.
+        """
+        if self.plan != 'premium':
+            return False
+            
+        now = timezone.now()
+        expired = False
+        
+        if self.status == 'active':
+            if self.current_period_end and now > self.current_period_end:
+                expired = True
+        elif self.status == 'canceled' and self.cancel_at_period_end:
+            if self.current_period_end and now > self.current_period_end:
+                expired = True
+        
+        if expired:
             self.plan = 'free'
             self.status = 'active'
             self.current_period_end = None
