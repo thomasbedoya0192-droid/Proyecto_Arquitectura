@@ -11,6 +11,7 @@ from .views import (
     LoginJWTView,
     FeedbackAccessCheck,
 )
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('cuentas/', ListaCuentasView.as_view(), name='lista_cuentas'),
@@ -20,15 +21,16 @@ urlpatterns = [
     path('suscripciones/', ListaSuscripcionesView.as_view(), name='lista_suscripciones'),
     path('suscripciones/<int:pk>/', DetalleSuscripcionView.as_view(), name='detalle_suscripcion'),
     path('suscripciones/procesar-autodebitos/', ProcesarAutoDebitosView.as_view(), name='procesar_autodebitos'),
-
+    
     # Rutas para Metas de Ahorro
     path('metas/', ListaMetasAhorroView.as_view(), name='lista_metas'),
     path('metas/<int:pk>/abonar/', AbonarMetaAhorroView.as_view(), name='abonar_meta'),
-
+    
     # Rutas para IA Feedback
     path('ia/', include('app.ia.urls')),
     path('ia/feedback/access-check/', FeedbackAccessCheck.as_view(), name='feedback_access_check'),
     
     # JWT Authentication
     path('auth/login/', LoginJWTView.as_view(), name='login_jwt'),
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

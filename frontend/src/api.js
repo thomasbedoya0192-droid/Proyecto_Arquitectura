@@ -20,6 +20,40 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 responses by attempting to refresh the token
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const userStr = localStorage.getItem('usuario_activo');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user.refresh_token) {
+            const response = await axios.post(
+              `${import.meta.env.VITE_API_URL || '/api'}/auth/token/refresh/`,
+              { refresh: user.refresh_token }
+            );
+            const newAccessToken = response.data.access;
+            user.token = newAccessToken;
+            localStorage.setItem('usuario_activo', JSON.stringify(user));
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            return api(originalRequest);
+          }
+        }
+      } catch (e) {
+        console.error('Token refresh failed:', e);
+        // Clear invalid session
+        localStorage.removeItem('usuario_activo');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Add Accept-Language header from sessionStorage
 const updateLocale = () => {
   const storedLocale = sessionStorage.getItem('selected_locale') || 'es';

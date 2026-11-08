@@ -10,6 +10,7 @@ from .services import TransaccionService
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class ListaTransaccionesView(APIView):
     """Obtener historial de transacciones (por usuario o cuenta) o registrar una nueva."""
@@ -233,10 +234,15 @@ class RegistrarUsuarioView(APIView):
         usuario.set_password(contrasena)
         usuario.save()
 
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(usuario)
+
         return Response({
             'id': usuario.id,
             'nombre': usuario.first_name or usuario.username,
-            'username': usuario.username
+            'username': usuario.username,
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
         }, status=status.HTTP_201_CREATED)
 
 
@@ -267,8 +273,13 @@ class LoginUsuarioView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(usuario)
+
         return Response({
             'id': usuario.id,
             'nombre': usuario.first_name or usuario.username,
-            'username': usuario.username
+            'username': usuario.username,
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
         }, status=status.HTTP_200_OK)
