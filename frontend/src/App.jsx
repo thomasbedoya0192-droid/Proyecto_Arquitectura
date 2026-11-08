@@ -7,23 +7,22 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SubscriptionsManager } from './components/SubscriptionsManager';
 import { Feedback } from './components/Feedback';
 import { GoalsManager } from './components/GoalsManager';
-import { PlanGate } from './components/PlanGate';
 import { Sidebar } from './components/Sidebar';
 import { NotificationToast } from './components/NotificationToast';
 import LanguageSelector from './components/LanguageSelector';
-import PlanPage from './components/PlanPage';
+import PlanPage from './components/plan/PlanPage';
+import PlanGuard from './components/PlanGuard';
+import { SubscriptionProvider, useSubscription } from './context/SubscriptionContext';
 import { Menu, LogOut } from 'lucide-react';
 
-export default function App() {
+function AppInner() {
   const [usuario, setUsuario] = useState(null);
   const [cuentas, setCuentas] = useState([]);
   const [suscripciones, setSuscripciones] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Se incrementa cada vez que termina de procesarse el auto-débito de
-  // suscripciones vencidas, para avisarle a los componentes hijos (que
-  // cargan sus propios datos por su cuenta) que deben refrescar.
   const [autoDebitVersion, setAutoDebitVersion] = useState(0);
   
+  const { isPremium, refresh: refreshSubscription } = useSubscription();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,26 +33,17 @@ export default function App() {
     }
   }, []);
 
-  // Cargar cuentas y suscripciones globales del usuario para alertas y presupuestos.
-  // Se recarga también al cambiar de sección (location.pathname) para que una cuenta
-  // creada en el Dashboard aparezca de inmediato en Suscripciones y Metas, que reciben
-  // esta lista por props en vez de cargarla ellos mismos.
   useEffect(() => {
     if (usuario?.id) {
       const cargarDatosGlobales = async () => {
         try {
-          // 1. Ejecutar auto-débitos pendientes
           await api.post('/suscripciones/procesar-autodebitos/', { usuario: usuario.id });
-          // Avisar a Dashboard/Suscripciones (que cargan sus propios datos)
-          // que ya pueden volver a pedirlos: el auto-débito ya se aplicó.
           setAutoDebitVersion((v) => v + 1);
 
-          // 2. Cargar cuentas actualizadas
           const resCuentas = await api.get(`/cuentas/?usuario=${usuario.id}`);
           const uCuentas = resCuentas.data.filter((c) => c.usuario === usuario.id);
           setCuentas(uCuentas);
 
-          // 3. Cargar suscripciones actualizadas
           const resSubs = await api.get(`/suscripciones/?usuario=${usuario.id}`);
           setSuscripciones(resSubs.data);
         } catch {
@@ -76,7 +66,11 @@ export default function App() {
     navigate('/login');
   };
 
-  // Título dinámico para la cabecera
+  const handleSubscriptionChange = () => {
+    // Called after upgrade/cancel/reset in PlanPage
+    // Refresh subscription status and wallet data
+  };
+
   const getPageTitle = (path) => {
     switch (path) {
       case '/dashboard':
@@ -105,14 +99,13 @@ export default function App() {
 
   return (
     <div style={styles.appContainer}>
-      <PlanGate />
-
       <Sidebar
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
         usuario={usuario}
         onLogout={handleCerrarSesion}
         suscripciones={suscripciones}
+        isPremium={isPremium}
       />
 
       <header style={styles.navbar}>
@@ -165,7 +158,6 @@ export default function App() {
                 usuario={usuario}
                 cuentas={cuentas}
                 onRefreshData={() => {
-                  // Re-cargar cuentas para refrescar el saldo disponible
                   api.get(`/cuentas/?usuario=${usuario.id}`).then((res) => {
                     const uCuentas = res.data.filter((c) => c.usuario === usuario.id);
                     setCuentas(uCuentas);
@@ -176,14 +168,17 @@ export default function App() {
           />
           <Route
             path="/feedback"
-            element={<Feedback usuario={usuario} />}
+            element={
+              <PlanGuard>
+                <Feedback usuario={usuario} />
+              </PlanGuard>
+            }
           />
-          <Route path="/plan" element={<PlanPage usuario={usuario} />} />
+          <Route path="/plan" element={<PlanPage usuario={usuario} onSubscriptionChange={handleSubscriptionChange} />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
 
-      {/* Alerta flotante de cobros próximos */}
       <NotificationToast suscripciones={suscripciones} />
     </div>
   );
@@ -234,3 +229,11 @@ const styles = {
     boxSizing: 'border-box',
   },
 };
+
+export default function App() {
+  return (
+    <SubscriptionProvider>
+      <AppInner />
+    </SubscriptionProvider>
+  );
+}

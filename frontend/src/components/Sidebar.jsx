@@ -1,21 +1,21 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useSubscription } from '../context/SubscriptionContext';
 import { calcularDiasRestantes } from './NotificationToast';
-import { Home, BarChart3, Repeat, Bot, Target, LogOut, X, Brain } from 'lucide-react';
+import { Home, BarChart3, Repeat, Target, Brain, Lock, LogOut, X, CreditCard } from 'lucide-react';
 
 export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isPremium } = useSubscription();
 
   if (!isOpen) return null;
 
-  // Filtrar suscripciones en rango de 7 días
   const subsEnRango = suscripciones
     .map((s) => calcularDiasRestantes(s.fecha_proximo_pago))
     .filter((dias) => dias !== null && dias >= 0 && dias <= 7);
 
   const cantidadProximas = subsEnRango.length;
-  // Cambiar a rojo si al menos una vence en 3 días o menos
   const esUrgente = subsEnRango.some((dias) => dias <= 3);
 
   const navItems = [
@@ -29,7 +29,13 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
     },
     { path: '/analytics', label: 'Reportes y Estadísticas', icon: BarChart3 },
     { path: '/metas', label: 'Metas de Ahorro', icon: Target },
-    { path: '/feedback', label: 'Feedback', icon: Brain },
+    { path: '/plan', label: 'Plan', icon: CreditCard },
+    { 
+      path: '/feedback', 
+      label: 'Feedback', 
+      icon: Brain,
+      locked: !isPremium,
+    },
   ];
 
   return (
@@ -46,12 +52,13 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+            const isLocked = item.locked === true;
             return (
               <button
                 key={item.path}
-                disabled={item.disabled}
+                disabled={isLocked}
                 onClick={() => {
-                  if (!item.disabled) {
+                  if (!isLocked) {
                     navigate(item.path);
                     setIsOpen(false);
                   }
@@ -59,12 +66,14 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
                 style={{
                   ...styles.navItem,
                   ...(isActive ? styles.activeNavItem : {}),
-                  ...(item.disabled ? styles.disabledNavItem : {}),
+                  ...(isLocked ? styles.lockedNavItem : {}),
                 }}
+                title={isLocked ? 'Requiere plan Premium' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                   <Icon size={18} style={{ marginRight: '10px' }} />
                   {item.label}
+                  {isLocked && <Lock size={16} color="#64748b" style={{ marginLeft: '6px' }} />}
                 </div>
                 {item.badge && (
                   <span
@@ -99,11 +108,13 @@ const styles = {
   brand: { fontSize: '1.2rem', fontWeight: 'bold', color: '#8b5cf6' },
   closeBtn: { backgroundColor: 'transparent', border: 'none', cursor: 'pointer' },
   nav: { display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 },
-  navItem: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'transparent', color: '#cbd5e1', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500' },
+  navItem: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderRadius: '0.5rem', backgroundColor: 'transparent', color: '#cbd5e1', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem', fontWeight: '500', transition: 'all 0.2s' },
   activeNavItem: { backgroundColor: '#8b5cf6', color: '#ffffff', fontWeight: 'bold' },
-  disabledNavItem: { color: '#64748b', cursor: 'not-allowed' },
+  lockedNavItem: { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#0f172a', color: '#64748b' },
   badge: { color: '#fff', fontSize: '0.75rem', fontWeight: 'bold', padding: '0.15rem 0.5rem', borderRadius: '1rem', transition: 'background-color 0.3s ease' },
   footer: { borderTop: '1px solid #334155', paddingTop: '1rem' },
   userText: { fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' },
   logoutBtn: { display: 'flex', alignItems: 'center', width: '100%', padding: '0.6rem', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' },
 };
+
+export default Sidebar;
