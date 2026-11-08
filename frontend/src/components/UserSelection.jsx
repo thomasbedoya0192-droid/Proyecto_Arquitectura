@@ -23,8 +23,12 @@ export function UserSelection({ onUserSelect }) {
     try {
       const response = await api.post(endpoint, { nombre: nombre.trim(), contrasena });
       // Guardar usuario en localStorage para persistencia de sesión
-      localStorage.setItem('usuario_activo', JSON.stringify(response.data));
-      onUserSelect(response.data);
+      const userData = {
+        ...response.data,
+        token: response.data.access_token || response.data.token,
+      };
+      localStorage.setItem('usuario_activo', JSON.stringify(userData));
+      onUserSelect(userData);
     } catch (err) {
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
