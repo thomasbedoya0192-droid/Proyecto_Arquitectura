@@ -2,7 +2,8 @@
 *.key
 *.id_rsa
 .env
-.env.local
+.env.*
+!.env.example
 db.sqlite3
 __pycache__/
 *.pyc
