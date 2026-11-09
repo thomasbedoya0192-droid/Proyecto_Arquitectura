@@ -4,6 +4,7 @@ COPY frontend/ /app/frontend/
 RUN cd /app/frontend && npm ci && npm run build
 
 FROM nginx:1.27-alpine
+RUN chmod -R 755 /usr/share/nginx/html
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 COPY gateway/nginx.conf /etc/nginx/conf.d/default.conf
 
