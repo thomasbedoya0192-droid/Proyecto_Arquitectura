@@ -15,7 +15,7 @@ export function SubscriptionProvider({ children }) {
     error: null,
   });
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (isInitialLoad = false) => {
     try {
       const userStr = localStorage.getItem('usuario_activo');
       if (!userStr) {
@@ -29,7 +29,10 @@ export function SubscriptionProvider({ children }) {
         return;
       }
 
-      setState(prev => ({ ...prev, status: 'loading' }));
+      // Only show loading on initial load, not on refresh
+      if (isInitialLoad) {
+        setState(prev => ({ ...prev, status: 'loading' }));
+      }
       
       const [statusRes, walletRes] = await Promise.all([
         api.get('/billing/status/'),
@@ -52,20 +55,20 @@ export function SubscriptionProvider({ children }) {
     }
   }, []);
 
-  // Refresh on mount
+  // Refresh on mount (initial load)
   useEffect(() => {
-    fetchStatus();
+    fetchStatus(true);
   }, [fetchStatus]);
 
-  // Refresh on window focus (no polling)
+  // Refresh on window focus (no polling, no loading state)
   useEffect(() => {
-    const handleFocus = () => fetchStatus();
+    const handleFocus = () => fetchStatus(false);
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchStatus]);
 
   const refresh = useCallback(() => {
-    fetchStatus();
+    fetchStatus(false);
   }, [fetchStatus]);
 
   const value = {

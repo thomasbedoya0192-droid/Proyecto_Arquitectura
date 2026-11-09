@@ -33,6 +33,13 @@ function AppInner() {
     }
   }, []);
 
+  // Refresh subscription on login/logout
+  useEffect(() => {
+    if (usuario?.id) {
+      refreshSubscription();
+    }
+  }, [usuario?.id, refreshSubscription]);
+
   useEffect(() => {
     if (usuario?.id) {
       const cargarDatosGlobales = async () => {
@@ -68,7 +75,7 @@ function AppInner() {
 
   const handleSubscriptionChange = () => {
     // Called after upgrade/cancel/reset in PlanPage
-    // Refresh subscription status and wallet data
+    refreshSubscription();
   };
 
   const getPageTitle = (path) => {

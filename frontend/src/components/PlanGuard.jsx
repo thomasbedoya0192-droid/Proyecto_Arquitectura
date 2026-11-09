@@ -1,24 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '../context/SubscriptionContext';
-import { Lock, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-export function PlanGuard() {
-  const { isPremium, status, refresh } = useSubscription();
+export function PlanGuard({ children }) {
+  const { isPremium, status } = useSubscription();
   const location = useLocation();
-  const [showLock, setShowLock] = useState(false);
 
   // Prevent flashing lock on reload for premium users
   useEffect(() => {
-    if (status === 'ready') {
-      setShowLock(!isPremium);
-    }
-  }, [status, isPremium]);
+    // No-op - just to satisfy exhaustive-deps
+  }, []);
 
   if (status === 'loading') {
     return (
       <div style={styles.loadingContainer}>
-        <Loader2 size={32} color="#8b5cf6" style={{ animation: 'spin 1s linear infinite' }} />
+        <div style={{ animation: 'spin 1s linear infinite' }}>⟳</div>
         <p style={styles.loadingText}>Verificando suscripción...</p>
       </div>
     );
@@ -35,7 +32,7 @@ export function PlanGuard() {
     }
   }
 
-  return <Outlet />;
+  return children ?? null;
 }
 
 const styles = {
