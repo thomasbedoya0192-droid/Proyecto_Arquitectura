@@ -2,7 +2,7 @@
 *.key
 *.id_rsa
 .env
-.env.*
+.env.local
 db.sqlite3
 __pycache__/
 *.pyc
@@ -23,6 +23,5 @@ frontend/dist/
 /node_modules/
 
 #Logs
-app/migrations/*cache.py
 *.log
 

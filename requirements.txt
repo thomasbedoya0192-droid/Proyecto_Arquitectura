@@ -16,4 +16,3 @@ pytz
 requests
 sqlparse
 urllib3
-stripe

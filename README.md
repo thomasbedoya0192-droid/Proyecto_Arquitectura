@@ -76,13 +76,13 @@ pip install -r requirements.txt
 
 ### 3. Configure the environment variables
 
-Create a file named `.env` in the project root (it is loaded automatically and is ignored by git):
+Copy the example file and edit it with your actual values:
 
-```env
-LLM_API_KEY=your_api_key_here
-LLM_PROVIDER=groq
-LLM_MODEL=llama-3.3-70b-versatile
+```bash
+cp .env.example .env
 ```
+
+Then open `.env` and fill in your keys (especially `LLM_API_KEY`).
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
