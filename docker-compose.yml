@@ -57,7 +57,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - DATABASE_URL=postgresql://core_user:core_pass@${CORE_RDS_HOST}:5432/core
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - LLM_PROVIDER=${LLM_PROVIDER}
@@ -80,7 +80,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - DATABASE_URL=postgresql://core_user:core_pass@${CORE_RDS_HOST}:5432/core
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - LLM_PROVIDER=${LLM_PROVIDER}
@@ -106,7 +106,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - DATABASE_URL=postgresql://core_user:core_pass@db:5432/core
+      - DATABASE_URL=postgresql://core_user:core_pass@${CORE_RDS_HOST}:5432/core
       - LLM_PROVIDER=${LLM_PROVIDER}
       - LLM_API_KEY=${LLM_API_KEY}
       - LLM_MODEL=${LLM_MODEL}
@@ -127,7 +127,7 @@ services:
       payments-db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://payments_user:payments_pass@payments-db:5432/payments
+      - DATABASE_URL=postgresql://payments_user:payments_pass@${PAYMENTS_RDS_HOST}:5432/payments
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
       - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN}
