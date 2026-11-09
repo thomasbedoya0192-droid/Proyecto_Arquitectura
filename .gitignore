@@ -26,3 +26,6 @@ frontend/dist/
 #Logs
 *.log
 
+# Static files
+staticfiles/
+

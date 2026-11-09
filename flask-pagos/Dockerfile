@@ -1,33 +1,27 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser -m appuser
 
-WORKDIR /app
-
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-RUN useradd -m -u 1000 appuser
+WORKDIR /app
 
 # Copy requirements first for caching
-COPY requirements.txt /app/requirements.txt
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project
-COPY . /app/
-
-# Change ownership and switch to non-root user
-RUN chown -R appuser:appuser /app
-USER appuser
+# Copy application code
+COPY payments/ /app/payments/
+COPY wsgi.py /app/wsgi.py
 
 # Expose Flask port
 EXPOSE 5000
 
-# Run with Flask directly (gunicorn has import issues)
-CMD ["python", "-u", "payments_service.py"]
+# Run with gunicorn
+CMD ["gunicorn", "wsgi:app", "--bind", "0.0.0.0:5000", "--workers", "2"]

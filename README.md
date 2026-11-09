@@ -122,6 +122,30 @@ The SPA is served at **http://localhost:5173/**. Vite proxies every request star
 
 ---
 
+## Run locally
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+The application will be available at **http://localhost**.
+
+### Local development
+
+For local development with the Vite dev server, run the frontend separately:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will proxy API requests to the gateway at `http://127.0.0.1` (configured via `VITE_PROXY_TARGET`).
+```
+
+---
+
 ## Management Command: Weekly AI Feedback
 
 `generar_feedback_semanal` generates the AI feedback (6 sections) for users.

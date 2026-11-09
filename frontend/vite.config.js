@@ -8,7 +8,7 @@ export default defineConfig({
     host: true, // Escuchar en IPv4 (127.0.0.1) e IPv6, no solo en ::1
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1',
         changeOrigin: true,
       }
     }

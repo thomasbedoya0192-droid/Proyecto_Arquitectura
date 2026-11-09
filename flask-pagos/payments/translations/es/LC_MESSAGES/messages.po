@@ -1,0 +1,36 @@
+# FinnishEZ translations - do not translate these IDs
+# User-facing strings use gettext: _('string_id')
+#: src/file.py:line
+msgid ""
+msgstr ""
+"Project-Id-Version: FinancEZ Payments Service\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-08\n"
+"PO-Revision-Date: 2026-11-08\n"
+"Last-Translator: \n"
+"Language: es\n"
+"Language-Team: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: 
+msgid "Balance"
+msgstr "Saldo"
+
+#: 
+msgid "Premium"
+msgstr "Premium"
+
+#: 
+msgid "Free"
+msgstr "Gratis"
+
+#: 
+msgid "Wallet"
+msgstr "Billetera"
+
+#: 
+msgid "Balance %(amount)s"
+msgstr "Saldo %(amount)s"

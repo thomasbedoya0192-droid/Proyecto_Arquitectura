@@ -16,3 +16,4 @@ pytz
 requests
 sqlparse
 urllib3
+whitenoise==6.6.0
