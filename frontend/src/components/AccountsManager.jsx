@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { CreditCard, PlusCircle, Wallet, Building2, AlertCircle, ArrowRightLeft } from 'lucide-react';
 import { TransactionForm } from './TransactionForm';
@@ -7,6 +8,7 @@ import { AccountDetailModal } from './AccountDetailModal';
 import { TransferModal } from './TransferModal';
 
 export function AccountsManager({ usuario, autoDebitVersion }) {
+  const { t } = useTranslation();
   const [cuentas, setCuentas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -28,7 +30,7 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
       const cuentasUsuario = res.data.filter((c) => c.usuario === usuario.id);
       setCuentas(cuentasUsuario);
     } catch {
-      setError('No se pudieron cargar las cuentas bancarias.');
+      setError(t('accounts.loadError'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
       setShowModal(false);
       handleRefreshTodo();
     } catch {
-      setError('Ocurrió un error al registrar la cuenta bancaria.');
+      setError(t('accounts.createError'));
     }
   };
 
@@ -82,28 +84,28 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h2>Mis Cuentas y Tarjetas</h2>
-          <p style={styles.subtitle}>Gestiona tus fuentes de saldo disponibles.</p>
+          <h2>{t('accounts.title')}</h2>
+          <p style={styles.subtitle}>{t('accounts.subtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.8rem' }}>
           {cuentas.length >= 2 && (
             <button style={styles.transferButton} onClick={() => setShowTransferModal(true)}>
-              <ArrowRightLeft size={18} style={{ marginRight: '8px' }} /> Transferir Saldo
+              <ArrowRightLeft size={18} style={{ marginRight: '8px' }} /> {t('accounts.transfer')}
             </button>
           )}
           <button style={styles.addButton} onClick={() => setShowModal(true)}>
-            <PlusCircle size={18} style={{ marginRight: '8px' }} /> Nueva Cuenta
+            <PlusCircle size={18} style={{ marginRight: '8px' }} /> {t('accounts.newAccount')}
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p style={styles.infoText}>Cargando cuentas...</p>
+        <p style={styles.infoText}>{t('accounts.loading')}</p>
       ) : cuentas.length === 0 ? (
         <div style={styles.emptyCard}>
           <Wallet size={48} color="#64748b" />
           <p style={{ marginTop: '1rem', color: '#94a3b8' }}>
-            Aún no tienes cuentas registradas. Agrega una para comenzar.
+            {t('accounts.empty')}
           </p>
         </div>
       ) : (
@@ -127,17 +129,17 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
                     <Building2 size={24} color="#3b82f6" />
                   )}
                 </div>
-                <span style={styles.typeBadge}>{cuenta.tipo}</span>
+                <span style={styles.typeBadge}>{t(`accountTypes.${cuenta.tipo}`, { defaultValue: cuenta.tipo })}</span>
               </div>
               <h3 style={styles.accountName}>{cuenta.nombre}</h3>
-              <p style={styles.balanceLabel}>Saldo Libre Disponible</p>
+              <p style={styles.balanceLabel}>{t('common.freeBalance')}</p>
               <p style={styles.balanceAmount}>
                 ${Math.round(cuenta.saldo_disponible ?? cuenta.saldo).toLocaleString('es-CO')}
               </p>
 
               {cuenta.saldo_reservado_metas > 0 && (
                 <div style={{ marginTop: '0.4rem', fontSize: '0.78rem', color: '#c084fc', fontWeight: 'bold' }}>
-                  🎯 Reservado: ${Math.round(cuenta.saldo_reservado_metas).toLocaleString('es-CO')}
+                  🎯 {t('common.reserved')}: ${Math.round(cuenta.saldo_reservado_metas).toLocaleString('es-CO')}
                 </div>
               )}
             </div>
@@ -165,33 +167,33 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
       {showModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCard}>
-            <h3>Registrar Nueva Cuenta</h3>
-            <p style={styles.subtitle}>Ingresa los detalles para crear tu fuente de saldo.</p>
+            <h3>{t('accounts.modalTitle')}</h3>
+            <p style={styles.subtitle}>{t('accounts.modalSubtitle')}</p>
 
             <form onSubmit={handleCrearCuenta} style={styles.form}>
-              <label style={styles.label}>Nombre de la cuenta:</label>
+              <label style={styles.label}>{t('accounts.nameLabel')}</label>
               <input
                 type="text"
-                placeholder="Ej: Cuenta de Ahorros, Billetera 1"
+                placeholder={t('accounts.namePlaceholder')}
                 value={nombreCuenta}
                 onChange={(e) => setNombreCuenta(e.target.value)}
                 style={styles.input}
                 required
               />
 
-              <label style={styles.label}>Tipo de cuenta:</label>
+              <label style={styles.label}>{t('accounts.typeLabel')}</label>
               <select
                 value={tipoCuenta}
                 onChange={(e) => setTipoCuenta(e.target.value)}
                 style={styles.select}
               >
-                <option value="Ahorros">Cuenta de Ahorros</option>
-                <option value="Corriente">Cuenta Corriente</option>
-                <option value="Billetera Digital">Billetera Digital</option>
-                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                <option value="Ahorros">{t('accountTypeOptions.savings')}</option>
+                <option value="Corriente">{t('accountTypeOptions.checking')}</option>
+                <option value="Billetera Digital">{t('accountTypeOptions.wallet')}</option>
+                <option value="Tarjeta de Crédito">{t('accountTypeOptions.creditCard')}</option>
               </select>
 
-              <label style={styles.label}>Saldo inicial ($):</label>
+              <label style={styles.label}>{t('accounts.initialBalance')}</label>
               <input
                 type="text"
                 placeholder="80.000"
@@ -213,10 +215,10 @@ export function AccountsManager({ usuario, autoDebitVersion }) {
                   style={styles.cancelButton}
                   onClick={() => setShowModal(false)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" style={styles.saveButton}>
-                  Guardar Cuenta
+                  {t('accounts.save')}
                 </button>
               </div>
             </form>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { PlusCircle, Trash2, Calendar, Filter, Repeat, AlertCircle, Wallet, Edit2 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export const SERVICES_CATALOG = [
 ];
 
 export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
+  const { t } = useTranslation();
   const [suscripciones, setSuscripciones] = useState([]);
   const [selectedCuentaFilter, setSelectedCuentaFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
       const res = await api.get(url);
       setSuscripciones(res.data);
     } catch {
-      setError('No se pudieron cargar las suscripciones.');
+      setError(t('subscriptions.loadError'));
     } finally {
       setLoading(false);
     }
@@ -144,19 +146,19 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
       setShowModal(false);
       cargarSuscripciones();
     } catch {
-      setError('Ocurrió un error al guardar la suscripción.');
+      setError(t('subscriptions.saveError'));
     }
   };
 
   const handleEliminarSuscripcion = async (id, nombre) => {
-    const confirmar = window.confirm(`¿Deseas cancelar y eliminar la suscripción "${nombre}"?`);
+    const confirmar = window.confirm(t('subscriptions.deleteConfirm', { name: nombre }));
     if (!confirmar) return;
 
     try {
       await api.delete(`/suscripciones/${id}/`);
       cargarSuscripciones();
     } catch {
-      setError('No se pudo eliminar la suscripción.');
+      setError(t('common.deleteSubscriptionError'));
     }
   };
 
@@ -169,12 +171,12 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
     <div style={styles.container}>
       <div style={styles.headerRow}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Gestión de Suscripciones Recurrentes</h2>
-          <p style={styles.subtitle}>Monitorea tus servicios de pago automático mensual o anual.</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{t('subscriptions.title')}</h2>
+          <p style={styles.subtitle}>{t('subscriptions.subtitle')}</p>
         </div>
 
         <button style={styles.addBtn} onClick={abrirModalNuevo}>
-          <PlusCircle size={18} style={{ marginRight: '6px' }} /> Nueva Suscripción
+          <PlusCircle size={18} style={{ marginRight: '6px' }} /> {t('subscriptions.new')}
         </button>
       </div>
 
@@ -182,9 +184,9 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
         <div style={styles.totalBox}>
           <Repeat color="#8b5cf6" size={24} />
           <div>
-            <span style={styles.totalLabel}>Gasto Estimado Mensual en Suscripciones</span>
+            <span style={styles.totalLabel}>{t('subscriptions.monthlyEstimate')}</span>
             <p style={styles.totalAmount}>
-              ${Math.round(gastoMensualTotal).toLocaleString('es-CO')} / mes
+              ${Math.round(gastoMensualTotal).toLocaleString('es-CO')} {t('subscriptions.perMonth')}
             </p>
           </div>
         </div>
@@ -196,10 +198,10 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
             onChange={(e) => setSelectedCuentaFilter(e.target.value)}
             style={styles.selectFilter}
           >
-            <option value="">Todas las cuentas</option>
+            <option value="">{t('common.allAccounts')}</option>
             {cuentas.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.nombre} ({c.tipo})
+                {c.nombre} ({t(`accountTypes.${c.tipo}`, { defaultValue: c.tipo })})
               </option>
             ))}
           </select>
@@ -207,12 +209,12 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
       </div>
 
       {loading ? (
-        <p style={styles.loadingText}>Cargando suscripciones...</p>
+        <p style={styles.loadingText}>{t('common.loadingSubscriptions')}</p>
       ) : suscripciones.length === 0 ? (
         <div style={styles.emptyCard}>
           <Repeat size={44} color="#64748b" />
           <p style={{ marginTop: '1rem', color: '#94a3b8' }}>
-            No tienes suscripciones registradas {selectedCuentaFilter ? 'para esta cuenta' : ''}.
+            {selectedCuentaFilter ? t('subscriptions.emptyForAccount') : t('subscriptions.empty')}
           </p>
         </div>
       ) : (
@@ -230,14 +232,14 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
                     <button
                       onClick={() => abrirModalEditar(sub)}
                       style={styles.iconBtn}
-                      title="Editar suscripción"
+                      title={t('subscriptions.edit')}
                     >
                       <Edit2 size={16} color="#38bdf8" />
                     </button>
                     <button
                       onClick={() => handleEliminarSuscripcion(sub.id, sub.nombre)}
                       style={styles.iconBtn}
-                      title="Eliminar suscripción"
+                      title={t('common.deleteSubscription')}
                     >
                       <Trash2 size={16} color="#ef4444" />
                     </button>
@@ -246,7 +248,7 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
 
                 <p style={styles.cardMonto}>
                   ${Math.round(parseFloat(sub.monto)).toLocaleString('es-CO')}{' '}
-                  <span style={styles.freqText}>/{sub.frecuencia.toLowerCase()}</span>
+                  <span style={styles.freqText}>/{t(`frequency.${sub.frecuencia}`, { defaultValue: sub.frecuencia }).toLowerCase()}</span>
                 </p>
 
                 <div style={styles.cardFooter}>
@@ -257,7 +259,7 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
 
                   <span style={styles.infoBadge}>
                     <Calendar size={14} style={{ marginRight: '4px' }} />
-                    Próximo: {sub.fecha_proximo_pago}
+                    {t('subscriptions.next', { date: sub.fecha_proximo_pago })}
                   </span>
                 </div>
               </div>
@@ -270,14 +272,14 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
         <div style={styles.overlay} onClick={() => setShowModal(false)}>
           <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 0.4rem 0' }}>
-              {editingSubId ? 'Editar Suscripción' : 'Registrar Nueva Suscripción'}
+              {editingSubId ? t('subscriptions.editTitle') : t('subscriptions.newTitle')}
             </h3>
             <p style={styles.subtitle}>
-              {editingSubId ? 'Actualiza los datos de cobro.' : 'Elige una plataforma o ingresa una personalizada.'}
+              {editingSubId ? t('subscriptions.editSubtitle') : t('subscriptions.newSubtitle')}
             </p>
 
             <form onSubmit={handleGuardarSuscripcion} style={styles.form}>
-              <label style={styles.label}>Servicio / Plataforma:</label>
+              <label style={styles.label}>{t('subscriptions.serviceLabel')}</label>
               <select
                 value={presetId}
                 onChange={(e) => handlePresetSelect(e.target.value)}
@@ -285,17 +287,17 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
               >
                 {SERVICES_CATALOG.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.name}
+                    {item.id === 'otro' ? t('subscriptions.otherService') : item.name}
                   </option>
                 ))}
               </select>
 
               {presetId === 'otro' && (
                 <>
-                  <label style={styles.label}>Nombre de la Suscripción:</label>
+                  <label style={styles.label}>{t('subscriptions.customNameLabel')}</label>
                   <input
                     type="text"
-                    placeholder="Ej: Servidor VPS, Licencia Software"
+                    placeholder={t('subscriptions.customNamePlaceholder')}
                     value={nombrePersonalizado}
                     onChange={(e) => setNombrePersonalizado(e.target.value)}
                     style={styles.input}
@@ -304,7 +306,7 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
                 </>
               )}
 
-              <label style={styles.label}>Cuenta/Tarjeta asociada:</label>
+              <label style={styles.label}>{t('subscriptions.accountLabel')}</label>
               <select
                 value={cuentaId}
                 onChange={(e) => setCuentaId(e.target.value)}
@@ -320,7 +322,7 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
 
               <div style={{ display: 'flex', gap: '0.8rem' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={styles.label}>Monto del Cobro ($):</label>
+                  <label style={styles.label}>{t('subscriptions.amountLabel')}</label>
                   <input
                     type="text"
                     placeholder="39.900"
@@ -332,19 +334,19 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <label style={styles.label}>Frecuencia:</label>
+                  <label style={styles.label}>{t('subscriptions.frequencyLabel')}</label>
                   <select
                     value={frecuencia}
                     onChange={(e) => setFrecuencia(e.target.value)}
                     style={styles.select}
                   >
-                    <option value="Mensual">Mensual</option>
-                    <option value="Anual">Anual</option>
+                    <option value="Mensual">{t('frequency.Mensual')}</option>
+                    <option value="Anual">{t('frequency.Anual')}</option>
                   </select>
                 </div>
               </div>
 
-              <label style={styles.label}>Fecha del Próximo Cobro:</label>
+              <label style={styles.label}>{t('subscriptions.nextDateLabel')}</label>
               <input
                 type="date"
                 value={fechaPago}
@@ -365,10 +367,10 @@ export function SubscriptionsManager({ usuario, cuentas, autoDebitVersion }) {
                   style={styles.cancelBtn}
                   onClick={() => setShowModal(false)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" style={styles.saveBtn}>
-                  {editingSubId ? 'Guardar Cambios' : 'Guardar Suscripción'}
+                  {editingSubId ? t('common.saveChanges') : t('common.saveSubscription')}
                 </button>
               </div>
             </form>

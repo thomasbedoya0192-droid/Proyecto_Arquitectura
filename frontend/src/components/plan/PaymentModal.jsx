@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { CreditCard, Wallet, Loader2, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
 
 export function PaymentModal({
@@ -13,6 +14,7 @@ export function PaymentModal({
   walletData,
   testCards,
 } = {}) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const handleConfirm = () => {
@@ -32,8 +34,8 @@ export function PaymentModal({
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <h3 style={styles.modalTitle}>Selecciona método de pago</h3>
-        <p style={styles.modalSubtitle}>Costo: <strong>$9.99 USD/mes</strong></p>
+        <h3 style={styles.modalTitle}>{t('payment.title')}</h3>
+        <p style={styles.modalSubtitle}><Trans i18nKey="payment.cost" components={{ strong: <strong /> }} /></p>
         
         <div style={styles.paymentOptions}>
           {/* Wallet Option */}
@@ -58,10 +60,10 @@ export function PaymentModal({
             <div style={styles.paymentOptionContent}>
               <span style={styles.paymentIcon}>💰</span>
               <div>
-                <strong>Billetera interna</strong>
+                <strong>{t('payment.wallet')}</strong>
                 <p style={styles.paymentOptionDetail}>
-                  Saldo: ${walletData?.wallet?.balance || '0.00'} USD
-                  {(walletData?.wallet?.balance || 0) < 9.99 && <span style={{color: '#ef4444'}}> (Insuficiente)</span>}
+                  {t('payment.balance')}: ${walletData?.wallet?.balance || '0.00'} USD
+                  {(walletData?.wallet?.balance || 0) < 9.99 && <span style={{color: '#ef4444'}}> {t('payment.insufficient')}</span>}
                 </p>
               </div>
             </div>
@@ -92,8 +94,8 @@ export function PaymentModal({
                 <div>
                   <strong>{card.display_name}</strong>
                   <p style={styles.paymentOptionDetail}>
-                    Saldo: ${card.balance} USD
-                    {!card.can_afford_premium && <span style={{color: '#ef4444'}}> (Insuficiente para Premium)</span>}
+                    {t('payment.balance')}: ${card.balance} USD
+                    {!card.can_afford_premium && <span style={{color: '#ef4444'}}> {t('payment.insufficientPremium')}</span>}
                   </p>
                 </div>
               </div>
@@ -103,7 +105,7 @@ export function PaymentModal({
 
         <div style={styles.modalActions}>
           <button style={styles.modalCancel} onClick={onClose}>
-            Cancelar
+            {t('common.cancel')}
           </button>
           <button 
             style={styles.modalConfirm}
@@ -113,11 +115,11 @@ export function PaymentModal({
             {loading ? (
               <>
                 <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: '6px' }}>⟳</span>
-                Procesando...
+                {t('common.processing')}
               </>
             ) : (
               <>
-                <span style={{marginRight: '6px'}}>💳</span> Confirmar pago de $9.99
+                <span style={{marginRight: '6px'}}>💳</span> {t('payment.confirm')}
               </>
             )}
           </button>

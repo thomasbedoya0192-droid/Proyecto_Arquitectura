@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { ArrowUpRight, ArrowDownLeft, Trash2, Filter, ArrowRightLeft } from 'lucide-react';
 
 export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataChanged }) {
+  const { t } = useTranslation();
   const [transacciones, setTransacciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tipoFiltro, setTipoFiltro] = useState(''); // '', 'ingreso', 'gasto', 'transferencia'
@@ -31,7 +33,7 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
   }, [usuario?.id, tipoFiltro, cuentaFiltro, autoDebitVersion]);
 
   const handleEliminar = async (id) => {
-    const confirmar = window.confirm('¿Deseas eliminar esta transacción? Se revertirá el saldo correspondiente.');
+    const confirmar = window.confirm(t('history.deleteConfirm'));
     if (!confirmar) return;
 
     try {
@@ -39,14 +41,14 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
       cargarTransacciones();
       if (onDataChanged) onDataChanged();
     } catch {
-      alert('Ocurrió un error al eliminar la transacción.');
+      alert(t('history.deleteError'));
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h3 style={styles.title}>Historial de Movimientos</h3>
+        <h3 style={styles.title}>{t('history.title')}</h3>
 
         <div style={styles.filtersRow}>
           <div style={styles.filterBox}>
@@ -56,10 +58,10 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
               onChange={(e) => setTipoFiltro(e.target.value)}
               style={styles.selectFilter}
             >
-              <option value="">Todos los tipos</option>
-              <option value="ingreso">Solo Ingresos</option>
-              <option value="gasto">Solo Gastos</option>
-              <option value="transferencia">Solo Transferencias</option>
+              <option value="">{t('history.allTypes')}</option>
+              <option value="ingreso">{t('history.onlyIncome')}</option>
+              <option value="gasto">{t('history.onlyExpenses')}</option>
+              <option value="transferencia">{t('history.onlyTransfers')}</option>
             </select>
           </div>
 
@@ -69,7 +71,7 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
               onChange={(e) => setCuentaFiltro(e.target.value)}
               style={styles.selectFilter}
             >
-              <option value="">Todas las cuentas</option>
+              <option value="">{t('common.allAccounts')}</option>
               {cuentas.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nombre}
@@ -81,46 +83,46 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
       </div>
 
       {loading ? (
-        <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Cargando movimientos...</p>
+        <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('history.loading')}</p>
       ) : transacciones.length === 0 ? (
-        <p style={styles.emptyText}>No hay movimientos registrados con los filtros seleccionados.</p>
+        <p style={styles.emptyText}>{t('history.empty')}</p>
       ) : (
         <div style={styles.tableContainer}>
           <table style={styles.table}>
             <thead>
               <tr style={styles.thRow}>
-                <th style={styles.th}>Tipo</th>
-                <th style={styles.th}>Descripción</th>
-                <th style={styles.th}>Cuenta</th>
-                <th style={styles.th}>Monto</th>
-                <th style={styles.th}>Acción</th>
+                <th style={styles.th}>{t('table.type')}</th>
+                <th style={styles.th}>{t('table.description')}</th>
+                <th style={styles.th}>{t('table.account')}</th>
+                <th style={styles.th}>{t('table.amount')}</th>
+                <th style={styles.th}>{t('table.action')}</th>
               </tr>
             </thead>
             <tbody>
-              {transacciones.map((t) => {
-                const esIngreso = t.tipo === 'ingreso';
-                const esTransferencia = t.tipo === 'transferencia';
-                const esEnviada = t.descripcion?.includes('enviada');
+              {transacciones.map((tx) => {
+                const esIngreso = tx.tipo === 'ingreso';
+                const esTransferencia = tx.tipo === 'transferencia';
+                const esEnviada = tx.descripcion?.includes('enviada');
 
                 return (
-                  <tr key={t.id} style={styles.tr}>
+                  <tr key={tx.id} style={styles.tr}>
                     <td style={styles.td}>
                       {esTransferencia ? (
                         <span style={{ ...styles.badge, backgroundColor: '#3b82f620', color: '#60a5fa' }}>
-                          <ArrowRightLeft size={14} style={{ marginRight: '4px' }} /> Transferencia
+                          <ArrowRightLeft size={14} style={{ marginRight: '4px' }} /> {t('txTypes.transferencia')}
                         </span>
                       ) : esIngreso ? (
                         <span style={{ ...styles.badge, backgroundColor: '#10b98120', color: '#34d399' }}>
-                          <ArrowDownLeft size={14} style={{ marginRight: '4px' }} /> Ingreso
+                          <ArrowDownLeft size={14} style={{ marginRight: '4px' }} /> {t('txTypes.ingreso')}
                         </span>
                       ) : (
                         <span style={{ ...styles.badge, backgroundColor: '#ef444420', color: '#f87171' }}>
-                          <ArrowUpRight size={14} style={{ marginRight: '4px' }} /> Gasto
+                          <ArrowUpRight size={14} style={{ marginRight: '4px' }} /> {t('txTypes.gasto')}
                         </span>
                       )}
                     </td>
-                    <td style={{ ...styles.td, color: '#f8fafc' }}>{t.descripcion || 'Sin descripción'}</td>
-                    <td style={styles.td}>{t.nombre_cuenta || 'Cuenta'}</td>
+                    <td style={{ ...styles.td, color: '#f8fafc' }}>{tx.descripcion || t('history.noDescription')}</td>
+                    <td style={styles.td}>{tx.nombre_cuenta || t('table.account')}</td>
                     <td
                       style={{
                         ...styles.td,
@@ -131,11 +133,11 @@ export function TransactionHistory({ usuario, cuentas, autoDebitVersion, onDataC
                       }}
                     >
                       {esTransferencia
-                        ? esEnviada ? `- $${Math.round(parseFloat(t.monto)).toLocaleString('es-CO')}` : `+ $${Math.round(parseFloat(t.monto)).toLocaleString('es-CO')}`
-                        : esIngreso ? `+ $${Math.round(parseFloat(t.monto)).toLocaleString('es-CO')}` : `- $${Math.round(parseFloat(t.monto)).toLocaleString('es-CO')}`}
+                        ? esEnviada ? `- $${Math.round(parseFloat(tx.monto)).toLocaleString('es-CO')}` : `+ $${Math.round(parseFloat(tx.monto)).toLocaleString('es-CO')}`
+                        : esIngreso ? `+ $${Math.round(parseFloat(tx.monto)).toLocaleString('es-CO')}` : `- $${Math.round(parseFloat(tx.monto)).toLocaleString('es-CO')}`}
                     </td>
                     <td style={styles.td}>
-                      <button onClick={() => handleEliminar(t.id)} style={styles.deleteBtn} title="Eliminar">
+                      <button onClick={() => handleEliminar(tx.id)} style={styles.deleteBtn} title={t('history.delete')}>
                         <Trash2 size={16} color="#ef4444" />
                       </button>
                     </td>

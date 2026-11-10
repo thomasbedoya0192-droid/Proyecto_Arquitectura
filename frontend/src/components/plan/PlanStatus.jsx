@@ -1,15 +1,18 @@
 import React from 'react';
+import { useTranslation, Trans } from 'react-i18next';
+import { getDateLocale } from '../../i18n';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { CheckCircle, XCircle, Clock, Info, Wallet, CreditCard, RotateCcw, AlertCircle } from 'lucide-react';
 
 export function PlanStatus({ usuario }) {
+  const { t } = useTranslation();
   const { isPremium, plan, currentPeriodEnd, cancelAtPeriodEnd, walletBalance, refresh } = useSubscription();
   const isSubscriptionActive = plan === 'premium' && (status === 'active' || (status === 'canceled' && cancelAtPeriodEnd));
 
   return (
     <div style={styles.currentPlan}>
       <div style={styles.planBadge}>
-        <span style={styles.planLabel}>Tu plan actual:</span>
+        <span style={styles.planLabel}>{t('planStatus.current')}</span>
         <span style={{
           ...styles.planValue,
           backgroundColor: isPremium ? 'rgba(56, 189, 248, 0.2)' : 'rgba(251, 191, 36, 0.2)',
@@ -21,28 +24,28 @@ export function PlanStatus({ usuario }) {
       </div>
 
       <div style={styles.walletInfo}>
-        <span>Saldo en billetera: <strong>${walletBalance} USD</strong></span>
+        <span>{t('planStatus.walletBalance')} <strong>${walletBalance} USD</strong></span>
       </div>
 
       {isPremium && (
         <div style={styles.premiumDetails}>
           <p style={styles.premiumNotice}>
             <span style={{ color: '#38bdf8' }}>✓</span>
-            Disfrutas de todas las características Premium
+            {t('planStatus.enjoying')}
             {cancelAtPeriodEnd && currentPeriodEnd && (
               <span style={{ marginLeft: '1rem', color: '#fbbf24', fontSize: '0.85rem' }}>
-                (Se cancelará al final del período: {new Date(currentPeriodEnd).toLocaleDateString('es-ES')})
+                {t('planStatus.willCancel', { date: new Date(currentPeriodEnd).toLocaleDateString(getDateLocale()) })}
               </span>
             )}
           </p>
           {currentPeriodEnd && !cancelAtPeriodEnd && (
             <p style={styles.periodEnd}>
-              Próximo cobro automático: {new Date(currentPeriodEnd).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {t('planStatus.nextCharge', { date: new Date(currentPeriodEnd).toLocaleDateString(getDateLocale(), { year: 'numeric', month: 'long', day: 'numeric' }) })}
             </p>
           )}
           {cancelAtPeriodEnd && (
             <p style={{ color: '#fbbf24', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Suscripción cancelada. Acceso hasta {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString('es-ES') : 'el final del período'}.
+              {t('planStatus.canceledUntil', { date: currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString(getDateLocale()) : t('planStatus.endOfPeriod') })}
             </p>
           )}
         </div>
@@ -50,7 +53,7 @@ export function PlanStatus({ usuario }) {
 
       {!isPremium && (
         <p style={styles.freeNotice}>
-          Actualiza a Premium por <strong>$9.99/mes</strong> para acceder a Feedback Financiero con IA y más características.
+          <Trans i18nKey="planStatus.upgradePitch" components={{ strong: <strong /> }} />
         </p>
       )}
     </div>

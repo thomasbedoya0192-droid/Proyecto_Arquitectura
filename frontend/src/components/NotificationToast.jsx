@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Clock, X } from 'lucide-react';
 
 export function calcularDiasRestantes(fechaPagoStr) {
@@ -15,6 +16,7 @@ export function calcularDiasRestantes(fechaPagoStr) {
 }
 
 export function NotificationToast({ suscripciones }) {
+  const { t } = useTranslation();
   const [resumenAlertas, setResumenAlertas] = useState(null);
   const [visible, setVisible] = useState(false);
 
@@ -66,12 +68,10 @@ export function NotificationToast({ suscripciones }) {
 
       <div style={styles.toastContent}>
         <p style={{ ...styles.toastTitle, color: resumenAlertas.esUrgente ? '#f87171' : '#fbbf24' }}>
-          {resumenAlertas.esUrgente ? '¡Atención! Cobros Inminentes' : 'Aviso de Próximos Cobros'}
+          {resumenAlertas.esUrgente ? t('toast.urgentTitle') : t('toast.upcomingTitle')}
         </p>
         <p style={styles.toastBody}>
-          {resumenAlertas.cantidad === 1
-            ? 'Tienes 1 suscripción programada para cobrarse pronto.'
-            : `Tienes ${resumenAlertas.cantidad} suscripciones que pronto se cobrarán.`}
+          {t('toast.body', { count: resumenAlertas.cantidad })}
         </p>
       </div>
 

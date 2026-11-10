@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { SERVICES_CATALOG } from './SubscriptionsManager';
 import {
@@ -22,6 +23,7 @@ export function AccountDetailModal({
   onAccountUpdated,
   onAccountDeleted,
 }) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('general'); // 'general' o 'subscriptions'
   const [nombre, setNombre] = useState('');
   const [tipo, setTipo] = useState('Ahorros');
@@ -125,7 +127,7 @@ export function AccountDetailModal({
       onAccountUpdated();
       onClose();
     } catch {
-      setError('No se pudieron guardar los cambios en la cuenta.');
+      setError(t('accountDetail.saveError'));
     } finally {
       setLoading(false);
     }
@@ -165,7 +167,7 @@ export function AccountDetailModal({
       await cargarSuscripcionesCuenta(cuenta.id); // Recargar la lista local del modal
       onAccountUpdated(); // Notificar al componente padre para refrescar
     } catch {
-      setError('Ocurrió un error al vincular la suscripción a esta cuenta.');
+      setError(t('accountDetail.linkError'));
     }
   };
 
@@ -174,13 +176,13 @@ export function AccountDetailModal({
       await api.delete(`/suscripciones/${id}/`);
       cargarSuscripcionesCuenta(cuenta.id);
     } catch {
-      setError('No se pudo eliminar la suscripción.');
+      setError(t('common.deleteSubscriptionError'));
     }
   };
 
   const handleEliminar = async () => {
     const confirmar = window.confirm(
-      `¿Estás seguro de eliminar la cuenta "${cuenta.nombre}"? Se borrarán también todas sus transacciones vinculadas.`
+      t('accountDetail.deleteConfirm', { name: cuenta.nombre })
     );
     if (!confirmar) return;
 
@@ -190,7 +192,7 @@ export function AccountDetailModal({
       onAccountDeleted();
       onClose();
     } catch {
-      setError('Ocurrió un error al eliminar la cuenta.');
+      setError(t('accountDetail.deleteError'));
     } finally {
       setLoading(false);
     }
@@ -226,7 +228,7 @@ export function AccountDetailModal({
             </div>
             <div>
               <h3 style={styles.modalTitle}>{cuenta.nombre}</h3>
-              <span style={styles.subtitle}>Gestión de cuenta y servicios</span>
+              <span style={styles.subtitle}>{t('accountDetail.subtitle')}</span>
             </div>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>
@@ -247,20 +249,20 @@ export function AccountDetailModal({
           alignItems: 'center'
         }}>
           <div>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>Saldo Libre Disponible</span>
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>{t('common.freeBalance')}</span>
             <span style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#38bdf8' }}>
               ${Math.round(cuenta.saldo_disponible ?? cuenta.saldo).toLocaleString('es-CO')}
             </span>
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>Saldo Total en Cuenta</span>
+            <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>{t('accountDetail.totalBalance')}</span>
             <span style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#f8fafc' }}>
               ${Math.round(cuenta.saldo).toLocaleString('es-CO')}
             </span>
             {cuenta.saldo_reservado_metas > 0 && (
               <span style={{ fontSize: '0.75rem', color: '#c084fc', display: 'block', fontWeight: 'bold', marginTop: '0.1rem' }}>
-                🎯 Reservado: ${Math.round(cuenta.saldo_reservado_metas).toLocaleString('es-CO')}
+                🎯 {t('common.reserved')}: ${Math.round(cuenta.saldo_reservado_metas).toLocaleString('es-CO')}
               </span>
             )}
           </div>
@@ -273,7 +275,7 @@ export function AccountDetailModal({
             }}
             onClick={() => setActiveTab('general')}
           >
-            Ajustes y Presupuesto
+            {t('accountDetail.tabGeneral')}
           </button>
           <button
             style={{
@@ -282,7 +284,7 @@ export function AccountDetailModal({
             }}
             onClick={() => setActiveTab('subscriptions')}
           >
-            Suscripciones ({suscripcionesCuenta.length})
+            {t('accountDetail.tabSubscriptions', { total: suscripcionesCuenta.length })}
           </button>
         </div>
 
@@ -305,7 +307,7 @@ export function AccountDetailModal({
                       <ShieldCheck size={18} color={getBarColor()} />
                     )}
                     <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
-                      Consumo del Presupuesto Mensual
+                      {t('accountDetail.budgetTitle')}
                     </span>
                   </div>
                   <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
@@ -326,10 +328,10 @@ export function AccountDetailModal({
 
                 <p style={{ ...styles.budgetStatusText, color: getBarColor() }}>
                   {porcentajeConsumido >= 100
-                    ? '¡Atención! Has alcanzado o superado el tope de gasto establecido para esta cuenta.'
+                    ? t('accountDetail.budgetReached')
                     : porcentajeConsumido >= 80
-                    ? 'Advertencia: Te estás aproximando al límite de gasto mensual.'
-                    : `Has consumido el ${porcentajeConsumido}% de tu presupuesto mensual.`}
+                    ? t('accountDetail.budgetWarning')
+                    : t('accountDetail.budgetConsumed', { percent: porcentajeConsumido })}
                 </p>
               </div>
             ) : (
@@ -337,15 +339,14 @@ export function AccountDetailModal({
                 <p
                   style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}
                 >
-                  Sin tope de gasto configurado. Define un valor en el campo de
-                  abajo para monitorear tus alertas.
+                  {t('accountDetail.noBudget')}
                 </p>
               </div>
             )}
 
             {/* Formulario de Edición */}
             <form onSubmit={handleGuardarCambios} style={styles.form}>
-              <label style={styles.label}>Nombre de la Cuenta:</label>
+              <label style={styles.label}>{t('accountDetail.nameLabel')}</label>
               <input
                 type="text"
                 value={nombre}
@@ -354,24 +355,24 @@ export function AccountDetailModal({
                 required
               />
 
-              <label style={styles.label}>Tipo de Cuenta:</label>
+              <label style={styles.label}>{t('accountDetail.typeLabel')}</label>
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
                 style={styles.select}
               >
-                <option value="Ahorros">Cuenta de Ahorros</option>
-                <option value="Corriente">Cuenta Corriente</option>
-                <option value="Billetera Digital">Billetera Digital</option>
-                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                <option value="Ahorros">{t('accountTypeOptions.savings')}</option>
+                <option value="Corriente">{t('accountTypeOptions.checking')}</option>
+                <option value="Billetera Digital">{t('accountTypeOptions.wallet')}</option>
+                <option value="Tarjeta de Crédito">{t('accountTypeOptions.creditCard')}</option>
               </select>
 
               <label style={styles.label}>
-                Tope Máximo de Gasto Mensual ($):
+                {t('accountDetail.limitLabel')}
               </label>
               <input
                 type="text"
-                placeholder="Ej: 500.000"
+                placeholder={t('accountDetail.limitPlaceholder')}
                 value={topeDisplay}
                 onChange={handleTopeChange}
                 style={styles.input}
@@ -386,13 +387,13 @@ export function AccountDetailModal({
                   onClick={handleEliminar}
                   disabled={loading}
                 >
-                  <Trash2 size={16} style={{ marginRight: '6px' }} /> Eliminar
-                  Cuenta
+                  <Trash2 size={16} style={{ marginRight: '6px' }} />{' '}
+                  {t('accountDetail.deleteAccount')}
                 </button>
 
                 <button type="submit" style={styles.saveBtn} disabled={loading}>
-                  <Save size={16} style={{ marginRight: '6px' }} /> Guardar
-                  Cambios
+                  <Save size={16} style={{ marginRight: '6px' }} />{' '}
+                  {t('common.saveChanges')}
                 </button>
               </div>
             </form>
@@ -409,7 +410,7 @@ export function AccountDetailModal({
               }}
             >
               <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
-                Cobros automáticos ligados a {cuenta.nombre}
+                {t('accountDetail.linkedCharges', { name: cuenta.nombre })}
               </span>
               <button
                 type="button"
@@ -417,7 +418,7 @@ export function AccountDetailModal({
                 onClick={() => setShowSubForm(!showSubForm)}
               >
                 <PlusCircle size={15} style={{ marginRight: '4px' }} />
-                {showSubForm ? 'Cancelar' : 'Vincular Servicio'}
+                {showSubForm ? t('common.cancel') : t('accountDetail.linkService')}
               </button>
             </div>
 
@@ -427,7 +428,7 @@ export function AccountDetailModal({
                 onSubmit={handleCrearSuscripcionCuenta}
                 style={styles.subFormContainer}
               >
-                <label style={styles.label}>Servicio:</label>
+                <label style={styles.label}>{t('accountDetail.serviceLabel')}</label>
                 <select
                   value={presetId}
                   onChange={(e) => handlePresetSelect(e.target.value)}
@@ -435,7 +436,7 @@ export function AccountDetailModal({
                 >
                   {SERVICES_CATALOG.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.name}
+                      {item.id === 'otro' ? t('subscriptions.otherService') : item.name}
                     </option>
                   ))}
                 </select>
@@ -443,7 +444,7 @@ export function AccountDetailModal({
                 {presetId === 'otro' && (
                   <input
                     type="text"
-                    placeholder="Nombre del servicio"
+                    placeholder={t('accountDetail.serviceNamePlaceholder')}
                     value={nombreSub}
                     onChange={(e) => setNombreSub(e.target.value)}
                     style={styles.input}
@@ -454,7 +455,7 @@ export function AccountDetailModal({
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input
                     type="text"
-                    placeholder="Monto ($)"
+                    placeholder={t('common.amountPlaceholder')}
                     value={montoSubDisplay}
                     onChange={handleMontoSubChange}
                     style={{ ...styles.input, flex: 1 }}
@@ -465,8 +466,8 @@ export function AccountDetailModal({
                     onChange={(e) => setFrecuenciaSub(e.target.value)}
                     style={{ ...styles.select, width: '110px' }}
                   >
-                    <option value="Mensual">Mensual</option>
-                    <option value="Anual">Anual</option>
+                    <option value="Mensual">{t('frequency.Mensual')}</option>
+                    <option value="Anual">{t('frequency.Anual')}</option>
                   </select>
                 </div>
 
@@ -479,7 +480,7 @@ export function AccountDetailModal({
                 />
 
                 <button type="submit" style={styles.saveBtnSub}>
-                  Guardar Suscripción
+                  {t('common.saveSubscription')}
                 </button>
               </form>
             )}
@@ -487,13 +488,13 @@ export function AccountDetailModal({
             {/* Lista de Suscripciones */}
             {loadingSubs ? (
               <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                Cargando suscripciones...
+                {t('common.loadingSubscriptions')}
               </p>
             ) : suscripcionesCuenta.length === 0 ? (
               <div style={styles.emptySubsBox}>
                 <Repeat size={32} color="#64748b" />
                 <p style={{ margin: '0.5rem 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-                  No hay suscripciones vinculadas a esta cuenta.
+                  {t('accountDetail.noSubscriptions')}
                 </p>
               </div>
             ) : (
@@ -517,7 +518,7 @@ export function AccountDetailModal({
                         </span>
                         <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.2rem' }}>
                           <span style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 'bold' }}>
-                            ${Math.round(parseFloat(sub.monto)).toLocaleString('es-CO')} /{sub.frecuencia.toLowerCase()}
+                            ${Math.round(parseFloat(sub.monto)).toLocaleString('es-CO')} /{t(`frequency.${sub.frecuencia}`, { defaultValue: sub.frecuencia }).toLowerCase()}
                           </span>
                           <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
                             <Calendar size={12} style={{ marginRight: '3px' }} /> {sub.fecha_proximo_pago}
@@ -529,7 +530,7 @@ export function AccountDetailModal({
                         type="button"
                         onClick={() => handleEliminarSuscripcion(sub.id)}
                         style={styles.deleteSubBtn}
-                        title="Eliminar suscripción"
+                        title={t('common.deleteSubscription')}
                       >
                         <Trash2 size={15} color="#ef4444" />
                       </button>

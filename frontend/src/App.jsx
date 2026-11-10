@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import api from './api';
 import { UserSelection } from './components/UserSelection';
@@ -16,6 +17,7 @@ import { SubscriptionProvider, useSubscription } from './context/SubscriptionCon
 import { Menu, LogOut } from 'lucide-react';
 
 function AppInner() {
+  const { t } = useTranslation();
   const [usuario, setUsuario] = useState(null);
   const [cuentas, setCuentas] = useState([]);
   const [suscripciones, setSuscripciones] = useState([]);
@@ -81,26 +83,31 @@ function AppInner() {
   const getPageTitle = (path) => {
     switch (path) {
       case '/dashboard':
-        return 'Inicio / Mis Cuentas';
+        return t('app.titles.dashboard');
       case '/suscripciones':
-        return 'Gestión de Suscripciones';
+        return t('app.titles.subscriptions');
       case '/analytics':
-        return 'Reportes y Estadísticas';
+        return t('app.titles.analytics');
       case '/metas':
-        return 'Metas Financieras de Ahorro';
+        return t('app.titles.goals');
       case '/feedback':
-        return 'Feedback Financiero';
+        return t('app.titles.feedback');
       default:
-        return 'Panel Financiero';
+        return t('app.titles.default');
     }
   };
 
   if (!usuario) {
     return (
-      <Routes>
-        <Route path="/login" element={<UserSelection onUserSelect={handleUserSelect} />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <>
+        <div style={styles.loginLanguage}>
+          <LanguageSelector />
+        </div>
+        <Routes>
+          <Route path="/login" element={<UserSelection onUserSelect={handleUserSelect} />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </>
     );
   }
 
@@ -125,9 +132,9 @@ function AppInner() {
         </div>
 
         <div style={styles.userSection}>
-          <span style={styles.userName}>Usuario: {usuario.nombre}</span>
+          <span style={styles.userName}>{t('app.user', { name: usuario.nombre })}</span>
           <button onClick={handleCerrarSesion} style={styles.logoutButton}>
-            <LogOut size={16} style={{ marginRight: '6px' }} /> Salir
+            <LogOut size={16} style={{ marginRight: '6px' }} /> {t('common.logout')}
           </button>
         </div>
       </header>
@@ -192,6 +199,12 @@ function AppInner() {
 }
 
 const styles = {
+  loginLanguage: {
+    position: 'absolute',
+    top: '1rem',
+    right: '1.5rem',
+    zIndex: 10,
+  },
   appContainer: {
     backgroundColor: '#0f172a',
     minHeight: '100vh',

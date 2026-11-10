@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '../context/SubscriptionContext';
 import { calcularDiasRestantes } from './NotificationToast';
 import { Home, BarChart3, Repeat, Target, Brain, Lock, LogOut, X, CreditCard } from 'lucide-react';
 
 export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = [] }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { isPremium } = useSubscription();
@@ -19,20 +21,20 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
   const esUrgente = subsEnRango.some((dias) => dias <= 3);
 
   const navItems = [
-    { path: '/dashboard', label: 'Inicio / Cuentas', icon: Home },
+    { path: '/dashboard', label: t('sidebar.home'), icon: Home },
     {
       path: '/suscripciones',
-      label: 'Suscripciones Recurrentes',
+      label: t('sidebar.subscriptions'),
       icon: Repeat,
       badge: cantidadProximas > 0 ? cantidadProximas : null,
       badgeColor: esUrgente ? '#ef4444' : '#f59e0b',
     },
-    { path: '/analytics', label: 'Reportes y Estadísticas', icon: BarChart3 },
-    { path: '/metas', label: 'Metas de Ahorro', icon: Target },
-    { path: '/plan', label: 'Plan', icon: CreditCard },
+    { path: '/analytics', label: t('sidebar.analytics'), icon: BarChart3 },
+    { path: '/metas', label: t('sidebar.goals'), icon: Target },
+    { path: '/plan', label: t('sidebar.plan'), icon: CreditCard },
     { 
       path: '/feedback', 
-      label: 'Feedback', 
+      label: t('sidebar.feedback'), 
       icon: Brain,
       locked: !isPremium,
     },
@@ -42,7 +44,7 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
     <div style={styles.overlay} onClick={() => setIsOpen(false)}>
       <div style={styles.sidebar} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
-          <h2 style={styles.brand}>Finanzas App</h2>
+          <h2 style={styles.brand}>{t('sidebar.brand')}</h2>
           <button style={styles.closeBtn} onClick={() => setIsOpen(false)}>
             <X size={20} color="#cbd5e1" />
           </button>
@@ -68,7 +70,7 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
                   ...(isActive ? styles.activeNavItem : {}),
                   ...(isLocked ? styles.lockedNavItem : {}),
                 }}
-                title={isLocked ? 'Requiere plan Premium' : ''}
+                title={isLocked ? t('sidebar.premiumRequired') : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                   <Icon size={18} style={{ marginRight: '10px' }} />
@@ -93,7 +95,7 @@ export function Sidebar({ isOpen, setIsOpen, usuario, onLogout, suscripciones = 
         <div style={styles.footer}>
           <p style={styles.userText}>{usuario?.nombre}</p>
           <button style={styles.logoutBtn} onClick={onLogout}>
-            <LogOut size={16} style={{ marginRight: '8px' }} /> Salir
+            <LogOut size={16} style={{ marginRight: '8px' }} /> {t('common.logout')}
           </button>
         </div>
       </div>

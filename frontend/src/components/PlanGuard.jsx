@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSubscription } from '../context/SubscriptionContext';
 import { Loader2 } from 'lucide-react';
 
 export function PlanGuard({ children }) {
+  const { t } = useTranslation();
   const { isPremium, status } = useSubscription();
   const location = useLocation();
 
@@ -16,7 +18,7 @@ export function PlanGuard({ children }) {
     return (
       <div style={styles.loadingContainer}>
         <div style={{ animation: 'spin 1s linear infinite' }}>⟳</div>
-        <p style={styles.loadingText}>Verificando suscripción...</p>
+        <p style={styles.loadingText}>{t('planGuard.verifying')}</p>
       </div>
     );
   }

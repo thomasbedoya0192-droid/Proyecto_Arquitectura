@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { Target, Plus, PiggyBank, Calendar, Wallet, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export function GoalsManager({ usuario, cuentas, onRefreshData }) {
+  const { t } = useTranslation();
   const [metas, setMetas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -76,7 +78,7 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
       cargarMetas();
       if (onRefreshData) onRefreshData();
     } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Error al procesar el abono.');
+      setErrorMsg(err.response?.data?.error || t('goals.depositError'));
     }
   };
 
@@ -84,24 +86,24 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Metas Financieras de Ahorro</h2>
-          <p style={styles.subtitle}>Aparta saldo de tus cuentas para alcanzar tus objetivos sin gastarlo por impulso.</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{t('goals.title')}</h2>
+          <p style={styles.subtitle}>{t('goals.subtitle')}</p>
         </div>
 
         <button style={styles.btnPrimary} onClick={() => setShowModal(true)}>
-          <Plus size={18} /> Nueva Meta
+          <Plus size={18} /> {t('goals.newGoal')}
         </button>
       </div>
 
       {loading ? (
-        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>Cargando metas de ahorro...</p>
+        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>{t('goals.loading')}</p>
       ) : !Array.isArray(metas) ? (
-        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>Error al cargar metas</p>
+        <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>{t('goals.loadError')}</p>
       ) : metas.length === 0 ? (
         <div style={styles.emptyCard}>
           <Target size={40} color="#8b5cf6" />
-          <p style={{ marginTop: '0.8rem', color: '#cbd5e1' }}>No tienes metas de ahorro activas.</p>
-          <button style={styles.btnSecondary} onClick={() => setShowModal(true)}>Crear mi primera meta</button>
+          <p style={{ marginTop: '0.8rem', color: '#cbd5e1' }}>{t('goals.empty')}</p>
+          <button style={styles.btnSecondary} onClick={() => setShowModal(true)}>{t('goals.createFirst')}</button>
         </div>
       ) : (
         <div style={styles.grid}>
@@ -119,21 +121,21 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
 
               <div style={{ marginTop: '1.2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
-                  <span style={{ color: '#94a3b8' }}>Abonado: ${Math.round(meta.monto_actual).toLocaleString('es-CO')}</span>
+                  <span style={{ color: '#94a3b8' }}>{t('goals.saved')}: ${Math.round(meta.monto_actual).toLocaleString('es-CO')}</span>
                   <span style={{ fontWeight: 'bold', color: '#38bdf8' }}>{meta.progreso_porcentaje}%</span>
                 </div>
                 <div style={styles.progressTrack}>
                   <div style={{ ...styles.progressBar, width: `${meta.progreso_porcentaje}%` }} />
                 </div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.4rem', textAlign: 'right' }}>
-                  Meta: ${Math.round(meta.monto_objetivo).toLocaleString('es-CO')}
+                  {t('goals.target')}: ${Math.round(meta.monto_objetivo).toLocaleString('es-CO')}
                 </div>
               </div>
 
               {meta.fecha_limite && (
                 <div style={styles.dateLabel}>
                   <Calendar size={13} color="#94a3b8" />
-                  <span>Límite: {meta.fecha_limite}</span>
+                  <span>{t('goals.deadline', { date: meta.fecha_limite })}</span>
                 </div>
               )}
 
@@ -144,7 +146,7 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                   setErrorMsg('');
                 }}
               >
-                Gestonar Saldo (Abonar / Liberar)
+                {t('goals.manageBalance')}
               </button>
             </div>
           ))}
@@ -155,11 +157,11 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
       {showModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
-            <h3>Crear Nueva Meta de Ahorro</h3>
+            <h3>{t('goals.modalTitle')}</h3>
             <form onSubmit={handleCrearMeta} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
               <input
                 type="text"
-                placeholder="Nombre de la meta (ej. Viaje, Fondo de Emergencia)"
+                placeholder={t('goals.namePlaceholder')}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 style={styles.input}
@@ -172,21 +174,21 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                 style={styles.input}
                 required
               >
-                <option value="">Selecciona la cuenta de origen</option>
+                <option value="">{t('goals.selectAccount')}</option>
                 {Array.isArray(cuentas) ? (
                   cuentas.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.nombre} (Disponible: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
+                      {c.nombre} ({t('goals.available')}: ${Math.round(c.saldo_disponible || c.saldo).toLocaleString('es-CO')})
                     </option>
                   ))
                 ) : (
-                  <option value="">Cuentas no disponibles</option>
+                  <option value="">{t('goals.accountsUnavailable')}</option>
                 )}
               </select>
 
               <input
                 type="number"
-                placeholder="Monto Objetivo ($)"
+                placeholder={t('goals.targetPlaceholder')}
                 value={montoObjetivo}
                 onChange={(e) => setMontoObjetivo(e.target.value)}
                 style={styles.input}
@@ -194,7 +196,7 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
               />
 
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>Fecha Límite (Opcional)</label>
+                <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>{t('goals.deadlineLabel')}</label>
                 <input
                   type="date"
                   value={fechaLimite}
@@ -204,8 +206,8 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={styles.btnCancel}>Cancelar</button>
-                <button type="submit" style={styles.btnPrimary}>Guardar Meta</button>
+                <button type="button" onClick={() => setShowModal(false)} style={styles.btnCancel}>{t('common.cancel')}</button>
+                <button type="submit" style={styles.btnPrimary}>{t('goals.save')}</button>
               </div>
             </form>
           </div>
@@ -216,8 +218,8 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
       {showAbonoModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
-            <h3>Gestionar Saldo: {showAbonoModal.nombre}</h3>
-            <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Cuenta: {showAbonoModal.nombre_cuenta}</p>
+            <h3>{t('goals.manageTitle', { name: showAbonoModal.nombre })}</h3>
+            <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{t('goals.account', { name: showAbonoModal.nombre_cuenta })}</p>
 
             {errorMsg && <div style={styles.errorBanner}>{errorMsg}</div>}
 
@@ -231,7 +233,7 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                   }}
                   onClick={() => setAccion('abonar')}
                 >
-                  <ArrowUpRight size={16} /> Abonar (Apartar)
+                  <ArrowUpRight size={16} /> {t('goals.deposit')}
                 </button>
                 <button
                   type="button"
@@ -241,13 +243,13 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
                   }}
                   onClick={() => setAccion('liberar')}
                 >
-                  <ArrowDownRight size={16} /> Liberar Saldo
+                  <ArrowDownRight size={16} /> {t('goals.release')}
                 </button>
               </div>
 
               <input
                 type="number"
-                placeholder="Monto ($)"
+                placeholder={t('common.amountPlaceholder')}
                 value={montoAbono}
                 onChange={(e) => setMontoAbono(e.target.value)}
                 style={styles.input}
@@ -255,8 +257,8 @@ export function GoalsManager({ usuario, cuentas, onRefreshData }) {
               />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => setShowAbonoModal(null)} style={styles.btnCancel}>Cancelar</button>
-                <button type="submit" style={styles.btnPrimary}>Confirmar</button>
+                <button type="button" onClick={() => setShowAbonoModal(null)} style={styles.btnCancel}>{t('common.cancel')}</button>
+                <button type="submit" style={styles.btnPrimary}>{t('goals.confirm')}</button>
               </div>
             </form>
           </div>

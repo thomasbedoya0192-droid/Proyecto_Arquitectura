@@ -1,17 +1,19 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { CreditCard, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 export function TestCardsList({ onCardSelect, selectedCardId, disabled }) {
+  const { t } = useTranslation();
   const { testCards } = useSubscription();
 
   return (
     <div style={styles.testCardsInfo}>
       <h4 style={styles.testCardsTitle}>
-        Tarjetas de prueba disponibles
+        {t('testCards.title')}
       </h4>
       <p style={styles.testCardsDesc}>
-        Tarjetas de prueba predefinidas para probar el sistema. Las tarjetas "Rich" tienen saldo suficiente para Premium ($9.99), las "Poor" no.
+        {t('testCards.description')}
       </p>
       <div style={styles.cardsGrid}>
         {testCards.map(card => (
@@ -49,7 +51,7 @@ export function TestCardsList({ onCardSelect, selectedCardId, disabled }) {
                 ...styles.cardBadgeTag,
                 backgroundColor: card.can_afford_premium ? '#38bdf8' : '#ef4444',
               }}>
-                {card.can_afford_premium ? '✓ Paga Premium' : '✗ Insuficiente'}
+                {card.can_afford_premium ? t('testCards.pays') : t('testCards.insufficient')}
               </span>
             </div>
           </label>

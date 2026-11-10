@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { TrendingUp, TrendingDown, ArrowRightLeft, Wallet, Filter, BarChart3, PieChart, Activity } from 'lucide-react';
 
 export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
+  const { t } = useTranslation();
   const [reporte, setReporte] = useState(null);
   const [cuentas, setCuentas] = useState(cuentasProp);
   const [loading, setLoading] = useState(true);
@@ -74,8 +76,8 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
       {/* Cabecera y Filtro de Cuentas */}
       <div style={styles.header}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>Panel de Analíticas Financieras</h2>
-          <p style={styles.subtitle}>Visión general de tus flujos de dinero, transferencias y balances.</p>
+          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>{t('analytics.title')}</h2>
+          <p style={styles.subtitle}>{t('analytics.subtitle')}</p>
         </div>
 
         <div style={styles.filterBox}>
@@ -85,10 +87,10 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
             onChange={(e) => setCuentaSeleccionada(e.target.value)}
             style={styles.selectFilter}
           >
-            <option value="">Todas las cuentas</option>
+            <option value="">{t('common.allAccounts')}</option>
             {cuentas.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.nombre} ({c.tipo})
+                {c.nombre} ({t(`accountTypes.${c.tipo}`, { defaultValue: c.tipo })})
               </option>
             ))}
           </select>
@@ -96,11 +98,11 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
       </div>
 
       {loading ? (
-        <p style={styles.loadingText}>Cargando analíticas financieras...</p>
+        <p style={styles.loadingText}>{t('analytics.loading')}</p>
       ) : error ? (
         <div style={styles.errorCard}>
           <Activity size={36} color="#f87171" />
-          <p style={{ marginTop: '0.8rem', color: '#cbd5e1' }}>No se pudieron obtener las analíticas en este momento.</p>
+          <p style={{ marginTop: '0.8rem', color: '#cbd5e1' }}>{t('analytics.error')}</p>
         </div>
       ) : (
         <>
@@ -108,7 +110,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
           <div style={styles.metricsGrid}>
             <div style={{ ...styles.card, borderTop: '4px solid #10b981' }}>
               <div style={styles.cardHeader}>
-                <span style={styles.cardTitle}>Total Ingresos</span>
+                <span style={styles.cardTitle}>{t('analytics.totalIncome')}</span>
                 <TrendingUp size={20} color="#10b981" />
               </div>
               <p style={{ ...styles.amount, color: '#34d399' }}>
@@ -118,7 +120,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
 
             <div style={{ ...styles.card, borderTop: '4px solid #ef4444' }}>
               <div style={styles.cardHeader}>
-                <span style={styles.cardTitle}>Total Gastos</span>
+                <span style={styles.cardTitle}>{t('analytics.totalExpenses')}</span>
                 <TrendingDown size={20} color="#ef4444" />
               </div>
               <p style={{ ...styles.amount, color: '#f87171' }}>
@@ -128,7 +130,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
 
             <div style={{ ...styles.card, borderTop: '4px solid #3b82f6' }}>
               <div style={styles.cardHeader}>
-                <span style={styles.cardTitle}>Transferencias Enviadas</span>
+                <span style={styles.cardTitle}>{t('analytics.transfersSent')}</span>
                 <ArrowRightLeft size={20} color="#3b82f6" />
               </div>
               <p style={{ ...styles.amount, color: '#60a5fa' }}>
@@ -138,7 +140,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
 
             <div style={{ ...styles.card, borderTop: '4px solid #8b5cf6' }}>
               <div style={styles.cardHeader}>
-                <span style={styles.cardTitle}>Balance Neto</span>
+                <span style={styles.cardTitle}>{t('analytics.netBalance')}</span>
                 <Wallet size={20} color="#8b5cf6" />
               </div>
               <p
@@ -156,17 +158,17 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
           <div style={styles.chartSection}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.2rem' }}>
               <PieChart size={20} color="#8b5cf6" />
-              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Distribución Porcentual del Flujo</h3>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{t('analytics.distributionTitle')}</h3>
             </div>
 
             {totalMovimientos === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Aún no hay suficientes movimientos para mostrar la distribución.</p>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('analytics.noMovements')}</p>
             ) : (
               <div style={styles.progressContainer}>
                 <div style={styles.progressLabels}>
-                  <span style={{ color: '#34d399' }}>🟢 Ingresos: {pctIngresos}%</span>
-                  <span style={{ color: '#f87171' }}>🔴 Gastos: {pctGastos}%</span>
-                  <span style={{ color: '#60a5fa' }}>🔵 Transferencias: {pctTransferencias}%</span>
+                  <span style={{ color: '#34d399' }}>🟢 {t('analytics.income')}: {pctIngresos}%</span>
+                  <span style={{ color: '#f87171' }}>🔴 {t('analytics.expenses')}: {pctGastos}%</span>
+                  <span style={{ color: '#60a5fa' }}>🔵 {t('analytics.transfers')}: {pctTransferencias}%</span>
                 </div>
 
                 <div style={styles.progressBarTrack}>
@@ -182,21 +184,21 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
           <div style={styles.recentSection}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
               <BarChart3 size={20} color="#8b5cf6" />
-              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Desglose de Últimos Movimientos</h3>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{t('analytics.breakdownTitle')}</h3>
             </div>
 
             {desgloseReciente.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No hay transacciones registradas para esta cuenta.</p>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{t('analytics.noTransactions')}</p>
             ) : (
               <div style={styles.tableContainer}>
                 <table style={styles.table}>
                   <thead>
                     <tr style={styles.thRow}>
-                      <th style={styles.th}>Fecha</th>
-                      <th style={styles.th}>Tipo</th>
-                      <th style={styles.th}>Descripción</th>
-                      <th style={styles.th}>Cuenta</th>
-                      <th style={styles.th}>Monto</th>
+                      <th style={styles.th}>{t('table.date')}</th>
+                      <th style={styles.th}>{t('table.type')}</th>
+                      <th style={styles.th}>{t('table.description')}</th>
+                      <th style={styles.th}>{t('table.account')}</th>
+                      <th style={styles.th}>{t('table.amount')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -222,7 +224,7 @@ export function AnalyticsDashboard({ usuario, cuentas: cuentasProp = [] }) {
                                   : '#f87171',
                               }}
                             >
-                              {(item.tipo || '').toUpperCase()}
+                              {t(`txTypes.${item.tipo}`, { defaultValue: item.tipo || '' }).toUpperCase()}
                             </span>
                           </td>
                           <td style={{ ...styles.td, color: '#f8fafc' }}>{item.descripcion}</td>

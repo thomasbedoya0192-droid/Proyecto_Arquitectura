@@ -1,27 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import api from '../api';
 
 const LanguageSelector = () => {
-  const { i18n } = useTranslation();
-  const [locale, setLocale] = useState(() => {
-    const saved = sessionStorage.getItem('selected_locale');
-    return saved || i18n.language || 'es';
-  });
-
-  useEffect(() => {
-    sessionStorage.setItem('selected_locale', locale);
-    api.defaults.headers['Accept-Language'] = locale;
-    i18n.changeLanguage(locale);
-  }, [locale, i18n]);
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language || 'es';
 
   const changeLocale = (newLocale) => {
-    setLocale(newLocale);
+    i18n.changeLanguage(newLocale);
   };
 
   return (
     <div style={styles.selector}>
-      <span style={styles.label}>Lang:</span>
+      <span style={styles.label}>{t('language.label')}</span>
       <button
         onClick={() => changeLocale('en')}
         style={locale === 'en' ? styles.activeButton : styles.inactiveButton}

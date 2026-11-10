@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { PlusCircle, MinusCircle, Tag, AlertCircle } from 'lucide-react';
 
 export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
+  const { t } = useTranslation();
   const [tipo, setTipo] = useState('gasto'); // 'gasto' o 'ingreso'
   const [cuentaId, setCuentaId] = useState(cuentas.length > 0 ? cuentas[0].id : '');
   const [categoria, setCategoria] = useState('Alimentación');
@@ -27,7 +29,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
     e.preventDefault();
     const targetCuenta = cuentaId || (cuentas.length > 0 ? cuentas[0].id : null);
     if (!targetCuenta || !montoDisplay) {
-      setError('Asegúrate de seleccionar una cuenta e ingresar un monto.');
+      setError(t('transactions.missingFields'));
       return;
     }
 
@@ -35,7 +37,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
     const categoriaFinal = categoria === 'Otra' ? otraCategoria.trim() : categoria;
 
     if (!categoriaFinal) {
-      setError('Especifica el nombre de la categoría.');
+      setError(t('transactions.missingCategory'));
       return;
     }
 
@@ -63,7 +65,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
-        setError('Ocurrió un error al registrar la transacción.');
+        setError(t('transactions.saveError'));
       }
     } finally {
       setLoading(false);
@@ -76,7 +78,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
 
   return (
     <div style={styles.card}>
-      <h3 style={styles.title}>Registrar Transacción</h3>
+      <h3 style={styles.title}>{t('transactions.title')}</h3>
 
       {/* Selector de Tipo */}
       <div style={styles.typeSelector}>
@@ -85,19 +87,19 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
           style={tipo === 'gasto' ? styles.activeGasto : styles.inactiveBtn}
           onClick={() => setTipo('gasto')}
         >
-          <MinusCircle size={16} style={{ marginRight: '6px' }} /> Gasto
+          <MinusCircle size={16} style={{ marginRight: '6px' }} /> {t('transactions.expense')}
         </button>
         <button
           type="button"
           style={tipo === 'ingreso' ? styles.activeIngreso : styles.inactiveBtn}
           onClick={() => setTipo('ingreso')}
         >
-          <PlusCircle size={16} style={{ marginRight: '6px' }} /> Ingreso
+          <PlusCircle size={16} style={{ marginRight: '6px' }} /> {t('transactions.income')}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} style={styles.form}>
-        <label style={styles.label}>Cuenta:</label>
+        <label style={styles.label}>{t('transactions.accountLabel')}</label>
         <select
           value={cuentaId || (cuentas.length > 0 ? cuentas[0].id : '')}
           onChange={(e) => setCuentaId(e.target.value)}
@@ -110,24 +112,24 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
           ))}
         </select>
 
-        <label style={styles.label}>Categoría:</label>
+        <label style={styles.label}>{t('transactions.categoryLabel')}</label>
         <select
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
           style={styles.select}
         >
-          <option value="Alimentación">Alimentación</option>
-          <option value="Transporte">Transporte</option>
-          <option value="Servicios">Servicios</option>
-          <option value="Entretenimiento">Entretenimiento</option>
-          <option value="Salud">Salud</option>
-          <option value="Otra">Otra...</option>
+          <option value="Alimentación">{t('transactions.categories.Alimentación')}</option>
+          <option value="Transporte">{t('transactions.categories.Transporte')}</option>
+          <option value="Servicios">{t('transactions.categories.Servicios')}</option>
+          <option value="Entretenimiento">{t('transactions.categories.Entretenimiento')}</option>
+          <option value="Salud">{t('transactions.categories.Salud')}</option>
+          <option value="Otra">{t('transactions.categories.Otra')}</option>
         </select>
 
         {categoria === 'Otra' && (
           <input
             type="text"
-            placeholder="Especifica la categoría"
+            placeholder={t('transactions.categoryPlaceholder')}
             value={otraCategoria}
             onChange={(e) => setOtraCategoria(e.target.value)}
             style={styles.input}
@@ -135,7 +137,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
           />
         )}
 
-        <label style={styles.label}>Monto ($):</label>
+        <label style={styles.label}>{t('transactions.amountLabel')}</label>
         <input
           type="text"
           placeholder="45.000"
@@ -145,10 +147,10 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
           required
         />
 
-        <label style={styles.label}>Descripción (Opcional):</label>
+        <label style={styles.label}>{t('transactions.descriptionLabel')}</label>
         <input
           type="text"
-          placeholder="Ej: Almuerzo de trabajo"
+          placeholder={t('transactions.descriptionPlaceholder')}
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
           style={styles.input}
@@ -161,7 +163,7 @@ export function TransactionForm({ usuario, cuentas, onTransactionAdded }) {
         )}
 
         <button type="submit" style={tipo === 'gasto' ? styles.submitGasto : styles.submitIngreso} disabled={loading}>
-          {loading ? 'Guardando...' : tipo === 'gasto' ? 'Registrar Gasto' : 'Registrar Ingreso'}
+          {loading ? t('transactions.saving') : tipo === 'gasto' ? t('transactions.submitExpense') : t('transactions.submitIncome')}
         </button>
       </form>
     </div>

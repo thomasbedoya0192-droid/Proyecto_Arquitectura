@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { LogIn, UserPlus } from 'lucide-react';
 
 export function UserSelection({ onUserSelect }) {
+  const { t } = useTranslation();
   const [modo, setModo] = useState('login'); // 'login' o 'registro'
   const [nombre, setNombre] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -33,7 +35,7 @@ export function UserSelection({ onUserSelect }) {
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error);
       } else {
-        setError('Error de conexión con el servidor backend.');
+        setError(t('auth.connectionError'));
       }
     } finally {
       setLoading(false);
@@ -48,29 +50,29 @@ export function UserSelection({ onUserSelect }) {
             style={modo === 'login' ? styles.activeTab : styles.inactiveTab}
             onClick={() => { setModo('login'); setError(''); }}
           >
-            <LogIn size={18} style={{ marginRight: '6px' }} /> Iniciar Sesión
+            <LogIn size={18} style={{ marginRight: '6px' }} /> {t('auth.login')}
           </button>
           <button
             style={modo === 'registro' ? styles.activeTab : styles.inactiveTab}
             onClick={() => { setModo('registro'); setError(''); }}
           >
-            <UserPlus size={18} style={{ marginRight: '6px' }} /> Registrarse
+            <UserPlus size={18} style={{ marginRight: '6px' }} /> {t('auth.register')}
           </button>
         </div>
 
         <h2 style={{ marginTop: '1.5rem' }}>
-          {modo === 'login' ? 'Bienvenido de nuevo' : 'Crear Cuenta'}
+          {modo === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
         </h2>
         <p style={styles.subtitle}>
           {modo === 'login' 
-            ? 'Ingresa tu nombre de usuario para acceder a tus cuentas.' 
-            : 'Crea un nuevo usuario para comenzar a gestionar tus finanzas.'}
+            ? t('auth.loginSubtitle')
+            : t('auth.registerSubtitle')}
         </p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             type="text"
-            placeholder="Username"
+            placeholder={t('auth.username')}
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             style={styles.input}
@@ -78,14 +80,14 @@ export function UserSelection({ onUserSelect }) {
           />
           <input
             type="password"
-            placeholder="Contraseña"
+            placeholder={t('auth.password')}
             value={contrasena}
             onChange={(e) => setContrasena(e.target.value)}
             style={styles.input}
             required
           />
           <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? 'Procesando...' : modo === 'login' ? 'Entrar' : 'Registrarse'}
+            {loading ? t('common.processing') : modo === 'login' ? t('auth.enter') : t('auth.register')}
           </button>
         </form>
 

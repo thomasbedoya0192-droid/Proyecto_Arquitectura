@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getDateLocale } from '../i18n';
 import api from '../api';
 import { RefreshCw, AlertCircle, CheckCircle, Clock, Brain } from 'lucide-react';
 
@@ -12,6 +14,7 @@ const SECCIONES = [
 ];
 
 export function Feedback({ usuario }) {
+  const { t } = useTranslation();
   const [feedback, setFeedback] = useState({});
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -59,7 +62,7 @@ export function Feedback({ usuario }) {
         const failedSections = Object.entries(res.data.errores)
           .map(([sec, err]) => `${sec}: ${err}`)
           .join('\n');
-        alert(`Feedback generado parcialmente con errores:\n\n${failedSections}`);
+        alert(`${t('feedback.partialErrors')}\n\n${failedSections}`);
       }
       
       await fetchFeedback();
@@ -71,11 +74,11 @@ export function Feedback({ usuario }) {
         const failedSections = Object.entries(e.response.data.errores)
           .map(([sec, err]) => `${sec}: ${err}`)
           .join('\n');
-        alert(`Feedback generado parcialmente con errores:\n\n${failedSections}`);
+        alert(`${t('feedback.partialErrors')}\n\n${failedSections}`);
       } else if (e.response?.data?.error) {
         alert(`Error: ${e.response.data.error}`);
       } else {
-        alert('Error al generar feedback. Verifica la API key en el backend.');
+        alert(t('feedback.genericError'));
       }
     } finally {
       setGenerating(false);
@@ -83,18 +86,18 @@ export function Feedback({ usuario }) {
   };
 
   const getTimeAgo = (date) => {
-    if (!date) return 'Nunca';
+    if (!date) return t('feedback.never');
     const diff = Date.now() - new Date(date).getTime();
     const mins = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    if (days > 0) return `hace ${days} día${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `hace ${hours} hora${hours > 1 ? 's' : ''}`;
-    return `hace ${mins} min`;
+    if (days > 0) return t('feedback.daysAgo', { count: days });
+    if (hours > 0) return t('feedback.hoursAgo', { count: hours });
+    return t('feedback.minsAgo', { mins });
   };
 
   const renderMarkdown = (text) => {
-    if (!text) return <p style={{ color: '#64748b' }}>Sin feedback disponible</p>;
+    if (!text) return <p style={{ color: '#64748b' }}>{t('feedback.noFeedback')}</p>;
     
     // Simple markdown-like rendering
     return text.split('\n').map((line, i) => {
@@ -133,8 +136,8 @@ export function Feedback({ usuario }) {
             )}
           </div>
           <div>
-            <h1 style={styles.title}>Feedback Financiero</h1>
-            <p style={styles.subtitle}>Análisis automático de tus finanzas por sección</p>
+            <h1 style={styles.title}>{t('feedback.title')}</h1>
+            <p style={styles.subtitle}>{t('feedback.subtitle')}</p>
           </div>
         </div>
         
@@ -142,7 +145,7 @@ export function Feedback({ usuario }) {
           {lastUpdated && (
             <div style={styles.lastUpdate}>
               <Clock size={14} color="#94a3b8" />
-              <span>Actualizado {getTimeAgo(lastUpdated)}</span>
+              <span>{t('feedback.updated', { time: getTimeAgo(lastUpdated) })}</span>
             </div>
           )}
           <button
@@ -153,12 +156,12 @@ export function Feedback({ usuario }) {
             {generating ? (
               <>
                 <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite', marginRight: '6px' }} />
-                Generando...
+                {t('feedback.generating')}
               </>
             ) : activeTab !== 'general' ? (
-              'Actualizar esta sección'
+              t('feedback.updateSection')
             ) : (
-              'Regenerar todo'
+              t('feedback.regenerateAll')
             )}
           </button>
         </div>
@@ -169,15 +172,15 @@ export function Feedback({ usuario }) {
         <div style={styles.statsBar}>
           <div style={styles.stat}>
             <span style={styles.statValue}>{stats.total_tokens.toLocaleString()}</span>
-            <span style={styles.statLabel}>Tokens totales</span>
+            <span style={styles.statLabel}>{t('feedback.totalTokens')}</span>
           </div>
           <div style={styles.stat}>
             <span style={styles.statValue}>{stats.total_feedbacks}</span>
-            <span style={styles.statLabel}>Secciones</span>
+            <span style={styles.statLabel}>{t('feedback.sectionsCount')}</span>
           </div>
           {Object.entries(stats.por_seccion).map(([k, v]) => (
             <div key={k} style={styles.statSmall}>
-              {k}: {v} tk
+              {t(`feedback.sections.${k}`, { defaultValue: k })}: {v} tk
             </div>
           ))}
         </div>
@@ -205,7 +208,7 @@ export function Feedback({ usuario }) {
               ) : (
                 <sec.icon size={16} style={{ marginRight: '6px' }} />
               )}
-              {sec.label}
+              {t(`feedback.sections.${sec.key}`, { defaultValue: sec.label })}
               {hasAlert && <AlertCircle size={12} color="#ef4444" style={{ marginLeft: '4px' }} />}
             </button>
           );
@@ -217,7 +220,7 @@ export function Feedback({ usuario }) {
         {loading ? (
           <div style={styles.loading}>
             <RefreshCw size={24} color="#8b5cf6" style={{ animation: 'spin 1s linear infinite' }} />
-            <p>Cargando análisis...</p>
+            <p>{t('feedback.loading')}</p>
           </div>
         ) : currentSection ? (
           <div style={styles.feedbackCard}>
@@ -226,7 +229,7 @@ export function Feedback({ usuario }) {
                 <span style={styles.triggerBadge}>{currentSection.trigger}</span>
                 <span style={styles.tokensBadge}>{currentSection.tokens_usados} tokens</span>
                 <span style={styles.dateBadge}>
-                  {new Date(currentSection.actualizado_en).toLocaleDateString('es-ES', { 
+                  {new Date(currentSection.actualizado_en).toLocaleDateString(getDateLocale(), { 
                     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' 
                   })}
                 </span>
@@ -239,9 +242,9 @@ export function Feedback({ usuario }) {
         ) : (
           <div style={styles.empty}>
             <Brain size={48} color="#64748b" />
-            <p>No hay feedback para esta sección</p>
+            <p>{t('feedback.empty')}</p>
             <button style={styles.btn} onClick={() => handleRegenerar([activeTab])}>
-              Generar ahora
+              {t('feedback.generateNow')}
             </button>
           </div>
         )}

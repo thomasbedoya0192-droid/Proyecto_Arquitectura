@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import api from '../api';
 import { X, ArrowRight, Wallet, AlertCircle } from 'lucide-react';
 
 export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuccess }) {
+  const { t } = useTranslation();
   const [cuentaOrigenId, setCuentaOrigenId] = useState(cuentas[0]?.id || '');
   const [cuentaDestinoId, setCuentaDestinoId] = useState(cuentas[1]?.id || '');
   const [montoDisplay, setMontoDisplay] = useState('');
@@ -27,7 +29,7 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
     if (!cuentaOrigenId || !cuentaDestinoId || !montoDisplay) return;
 
     if (cuentaOrigenId === cuentaDestinoId) {
-      setError('La cuenta de origen y destino deben ser distintas.');
+      setError(t('transfer.sameAccount'));
       return;
     }
 
@@ -49,7 +51,7 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
       onTransferSuccess();
       onClose();
     } catch (err) {
-      const msg = err.response?.data?.error || 'Ocurrió un error al realizar la transferencia.';
+      const msg = err.response?.data?.error || t('transfer.error');
       setError(msg);
     } finally {
       setLoading(false);
@@ -62,7 +64,7 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
         <div style={styles.header}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <Wallet size={22} color="#8b5cf6" />
-            <h3 style={styles.title}>Transferencia Entre Cuentas</h3>
+            <h3 style={styles.title}>{t('transfer.title')}</h3>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>
             <X size={20} color="#cbd5e1" />
@@ -72,7 +74,7 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
         <form onSubmit={handleTransferir} style={styles.form}>
           <div style={styles.selectsRow}>
             <div style={{ flex: 1 }}>
-              <label style={styles.label}>Desde (Origen):</label>
+              <label style={styles.label}>{t('transfer.from')}</label>
               <select
                 value={cuentaOrigenId}
                 onChange={(e) => setCuentaOrigenId(e.target.value)}
@@ -91,7 +93,7 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
             </div>
 
             <div style={{ flex: 1 }}>
-              <label style={styles.label}>Hacia (Destino):</label>
+              <label style={styles.label}>{t('transfer.to')}</label>
               <select
                 value={cuentaDestinoId}
                 onChange={(e) => setCuentaDestinoId(e.target.value)}
@@ -106,20 +108,20 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
             </div>
           </div>
 
-          <label style={styles.label}>Monto a Transferir ($):</label>
+          <label style={styles.label}>{t('transfer.amountLabel')}</label>
           <input
             type="text"
-            placeholder="Ej: 100.000"
+            placeholder={t('transfer.amountPlaceholder')}
             value={montoDisplay}
             onChange={handleMontoChange}
             style={styles.input}
             required
           />
 
-          <label style={styles.label}>Nota / Concepto (Opcional):</label>
+          <label style={styles.label}>{t('transfer.noteLabel')}</label>
           <input
             type="text"
-            placeholder="Ej: Pago de tarjeta, ahorro mensual"
+            placeholder={t('transfer.notePlaceholder')}
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             style={styles.input}
@@ -133,10 +135,10 @@ export function TransferModal({ isOpen, onClose, usuario, cuentas, onTransferSuc
 
           <div style={styles.actions}>
             <button type="button" style={styles.cancelBtn} onClick={onClose} disabled={loading}>
-              Cancelar
+              {t('common.cancel')}
             </button>
             <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading ? 'Procesando...' : 'Confirmar Transferencia'}
+              {loading ? t('common.processing') : t('transfer.confirm')}
             </button>
           </div>
         </form>

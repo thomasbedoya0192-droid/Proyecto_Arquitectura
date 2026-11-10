@@ -68,9 +68,9 @@ api.interceptors.response.use(
   }
 );
 
-// Add Accept-Language header from sessionStorage
+// Add Accept-Language header from the stored language preference
 const updateLocale = () => {
-  const storedLocale = sessionStorage.getItem('selected_locale') || 'es';
+  const storedLocale = localStorage.getItem('selected_locale') || 'es';
   api.defaults.headers['Accept-Language'] = storedLocale;
 };
 updateLocale();

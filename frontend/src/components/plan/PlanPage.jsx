@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import { useSubscription } from '../../context/SubscriptionContext';
@@ -8,6 +9,7 @@ import PaymentModal from './PaymentModal';
 import { CreditCard, CheckCircle, XCircle, ArrowLeft, Loader2, Settings, RefreshCw, AlertCircle, Info } from 'lucide-react';
 
 const PlanPage = ({ usuario, onSubscriptionChange }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { 
     isPremium, 
@@ -55,11 +57,11 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
         const failedSections = Object.entries(err.response.data.errores)
           .map(([sec, err]) => `${sec}: ${err}`)
           .join('\n');
-        setError(`Error en el pago:\n${failedSections}`);
+        setError(`${t('plan.paymentError')}\n${failedSections}`);
       } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
-        setError('Error al procesar la actualización. Intenta de nuevo.');
+        setError(t('plan.upgradeError'));
       }
     } finally {
       setLoading(false);
@@ -67,7 +69,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!window.confirm('¿Estás seguro? Perderás acceso a Premium al final del período actual. No hay reembolsos.')) {
+    if (!window.confirm(t('plan.cancelConfirm'))) {
       return;
     }
 
@@ -82,7 +84,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
-        setError('Error al cancelar la suscripción.');
+        setError(t('plan.cancelError'));
       }
     } finally {
       setLoading(false);
@@ -94,9 +96,9 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
     try {
       await api.post('/billing/test-cards/reset/');
       await refresh();
-      setSuccess('Tarjetas de prueba reiniciadas');
+      setSuccess(t('plan.cardsReset'));
     } catch (err) {
-      setError('Error al reiniciar tarjetas');
+      setError(t('plan.cardsResetError'));
     } finally {
       setLoading(false);
     }
@@ -115,14 +117,14 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
         <button onClick={() => navigate(-1)} style={styles.backBtn}>
           <span style={{fontSize: '1.5rem'}}>←</span>
         </button>
-        <h1 style={styles.title}>Plan de Actualización</h1>
+        <h1 style={styles.title}>{t('plan.title')}</h1>
       </div>
 
       {/* Status Messages */}
       {error && (
         <div style={styles.errorBanner}>
           <span>{error}</span>
-          <button onClick={handleRetry} style={styles.retryBtn}>Reintentar</button>
+          <button onClick={handleRetry} style={styles.retryBtn}>{t('plan.retry')}</button>
         </div>
       )}
       {success && (
@@ -168,14 +170,14 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
         }}>
           <div style={styles.planHeader}>
             <h4>Free</h4>
-            <div style={styles.price}>$0<span>/mes</span></div>
+            <div style={styles.price}>$0<span>{t('plan.perMonth')}</span></div>
           </div>
           <ul style={styles.features}>
-            <li style={styles.featureItem}><span style={{color: '#ef4444'}}>✗</span> Feedback Financiero (IA)</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Gestión de Cuentas</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Suscripciones</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Metas de Ahorro</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Reportes Básicos</li>
+            <li style={styles.featureItem}><span style={{color: '#ef4444'}}>✗</span> {t('plan.features.aiFeedback')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.accounts')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.subscriptions')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.goals')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.basicReports')}</li>
           </ul>
           <button 
             style={{ 
@@ -184,7 +186,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
             }}
             disabled
           >
-            {!isPremium ? 'Plan Actual' : 'Cambiar a Free'}
+            {!isPremium ? t('plan.currentPlan') : t('plan.switchToFree')}
           </button>
         </div>
 
@@ -195,15 +197,15 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
         }}>
           <div style={styles.planHeader}>
             <h4>Premium</h4>
-            <div style={styles.price}>$9.99<span>/mes</span></div>
+            <div style={styles.price}>$9.99<span>{t('plan.perMonth')}</span></div>
           </div>
           <ul style={styles.features}>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Feedback Financiero (IA)</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Gestión de Cuentas</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Suscripciones</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Metas de Ahorro</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Reportes Avanzados</li>
-            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> Notificaciones Prioritarias</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.aiFeedback')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.accounts')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.subscriptions')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.goals')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.advancedReports')}</li>
+            <li style={styles.featureItem}><span style={{color: '#38bdf8'}}>✓</span> {t('plan.features.priorityNotifications')}</li>
           </ul>
           
           {isPremium ? (
@@ -212,7 +214,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
                 style={cancelAtPeriodEnd ? styles.currentBtn : styles.currentBtn}
                 disabled
               >
-                {cancelAtPeriodEnd ? 'Cancelado (fin de período)' : 'Plan Actual'}
+                {cancelAtPeriodEnd ? t('plan.canceledAtEnd') : t('plan.currentPlan')}
               </button>
               {cancelAtPeriodEnd ? null : (
                 <button 
@@ -220,7 +222,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
                   onClick={handleCancelSubscription}
                   disabled={loading}
                 >
-                  Cancelar (fin de período)
+                  {t('plan.cancelAtEnd')}
                 </button>
               )}
               <button 
@@ -228,7 +230,7 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
                 onClick={handleResetCards}
                 disabled={loading}
               >
-                Reiniciar tarjetas de prueba
+                {t('plan.resetCards')}
               </button>
             </div>
           ) : (
@@ -240,11 +242,11 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
               {loading ? (
                 <>
                   <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: '6px' }}>⟳</span>
-                  Procesando...
+                  {t('common.processing')}
                 </>
               ) : (
                 <>
-                  <span style={{marginRight: '6px'}}>💳</span> Actualizar a Premium
+                  <span style={{marginRight: '6px'}}>💳</span> {t('plan.upgrade')}
                 </>
               )}
             </button>
@@ -262,10 +264,10 @@ const PlanPage = ({ usuario, onSubscriptionChange }) => {
       {/* Info Footer */}
       <div style={styles.infoFooter}>
         <p style={styles.infoFooterP}>
-          Sistema de pagos interno de prueba. El admin puede recargar tu billetera desde Django Admin.
+          {t('plan.footerPayments')}
         </p>
         <p style={styles.infoFooterP}>
-          Puedes cancelar tu suscripción en cualquier momento. No hay reembolsos, el acceso continúa hasta el final del período pagado.
+          {t('plan.footerCancel')}
         </p>
       </div>
     </div>
