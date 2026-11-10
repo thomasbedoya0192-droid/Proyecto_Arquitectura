@@ -5,6 +5,7 @@ from calendar import monthrange
 from .models import Suscripcion
 from transacciones.models import Transaccion
 
+# Servicio auxilar para el cálculo del ciclo de cobro de suscripciones.
 def sumar_periodo(fecha_actual, frecuencia):
     """Calcula la próxima fecha de cobro según el ciclo (Mensual o Anual)."""
     if frecuencia == 'Anual':
@@ -22,6 +23,7 @@ def sumar_periodo(fecha_actual, frecuencia):
         return fecha_actual.replace(year=year, month=month, day=day)
 
 
+# Servicio principal para la automatización y procesamiento de cobros recurrentes de suscripciones.
 def procesar_autodebitos_suscripciones(usuario_id=None):
     """
     Detecta suscripciones vencidas, debita el saldo de la cuenta,

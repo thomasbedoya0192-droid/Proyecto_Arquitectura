@@ -14,6 +14,7 @@ from transacciones.services import TransaccionService
 from .prompts import PROMPTS, SECCIONES, UMBRAL_GASTO_GRANDE_PORCENTAJE, MASTER_PROMPT
 
 
+# Servicio cliente para la abstracción e integración con proveedores de LLM (Groq u OpenAI)
 class LLMClient:
     """Cliente para llamar a la API de LLM (Groq/OpenAI)"""
     
@@ -25,6 +26,7 @@ class LLMClient:
         if not self.api_key:
             raise ValueError("LLM_API_KEY no configurada en variables de entorno")
     
+    # Servicio auxiliar para enrutar solicitudes de completado al proveedor configurado
     def completar(self, prompt: str, max_tokens: int = 800, temperature: float = 0.3) -> tuple[str, int]:
         """
         Llama al LLM y retorna (respuesta, tokens_usados)
@@ -36,6 +38,7 @@ class LLMClient:
         else:
             raise ValueError(f"Proveedor no soportado: {self.provider}")
     
+    # Servicio interno para gestionar llamadas a la API de Groq con reintentos e intervalo exp de retroceso
     def _groq_completar(self, prompt: str, max_tokens: int, temperature: float) -> tuple[str, int]:
         import requests, logging, time
         
@@ -69,6 +72,7 @@ class LLMClient:
             time.sleep(2 ** attempt)
         raise RuntimeError("Groq request timed out after retries")
     
+    # Servicio interno para gestionar llamadas a la API de OpenAI con política de reintentos
     def _openai_completar(self, prompt: str, max_tokens: int, temperature: float) -> tuple[str, int]:
         import requests, logging, time
         
@@ -106,14 +110,17 @@ class LLMClient:
         raise RuntimeError("OpenAI request timed out after retries")
 
 
+# Servicio de inicialización bajo demanda (lazy factory) del cliente LLM
 def get_llm_client():
     """Lazy initialization del cliente LLM"""
     return LLMClient()
 
 
+# Servicio principal para la agregación de contexto financiero, análisis de datos y generación de feedback mediante IA
 class FeedbackIAService:
     """Servicio principal para generar y gestionar feedback de IA"""
     
+    # Servicio para la recolección y agregación completa del contexto financiero del usuario (cuentas, metas, suscripciones, transacciones y alertas)
     @staticmethod
     def obtener_contexto_completo(usuario_id: int) -> dict:
         """Obtiene todo el contexto financiero del usuario en una sola llamada"""
@@ -278,228 +285,3 @@ class FeedbackIAService:
         
         # Gasto > ingresos
         if total_gastos > total_ingresos:
-            alertas.append(f"Gastos superan ingresos en 30 días: ${float(total_gastos - total_ingresos):,.0f} de déficit")
-        
-        return {
-            'usuario': {'id': usuario.id, 'username': usuario.username},
-            'cuentas': cuentas_data,
-            'resumen_cuentas': {
-                'total_cuentas': len(cuentas_data),
-                'saldo_total': float(saldo_total),
-                'disponible_total': float(disponible_total),
-                'reservado_total': float(reservado_total),
-            },
-            'metas': metas_data,
-            'resumen_metas': {
-                'total': len(metas_data),
-                'en_riesgo': metas_en_riesgo,
-                'cumplidas': metas_cumplidas,
-                'en_camino': len(metas_data) - metas_en_riesgo - metas_cumplidas,
-            },
-            'suscripciones': suscripciones_data,
-            'transacciones': transacciones_data,
-            'reporte': reporte,
-            'alertas_automaticas': alertas,
-        }
-    
-    @staticmethod
-    def _construir_contexto_seccion(contexto_completo: dict, seccion: str) -> str:
-        """Construye el contexto específico para cada sección"""
-        if seccion == 'general':
-            return json.dumps(contexto_completo, ensure_ascii=False, indent=2)
-        
-        elif seccion == 'cuentas':
-            return json.dumps({
-                'cuentas': contexto_completo['cuentas'],
-                'resumen': contexto_completo['resumen_cuentas'],
-            }, ensure_ascii=False, indent=2)
-        
-        elif seccion == 'gastos':
-            return json.dumps({
-                'transacciones': contexto_completo['transacciones'],
-            }, ensure_ascii=False, indent=2)
-        
-        elif seccion == 'metas':
-            return json.dumps({
-                'metas': contexto_completo['metas'],
-                'resumen': contexto_completo['resumen_metas'],
-            }, ensure_ascii=False, indent=2)
-        
-        elif seccion == 'suscripciones':
-            return json.dumps({
-                'suscripciones': contexto_completo['suscripciones'],
-            }, ensure_ascii=False, indent=2)
-        
-        elif seccion == 'reportes':
-            return json.dumps({
-                'reporte': contexto_completo['reporte'],
-                'transacciones_resumen': {
-                    'total_gastos': contexto_completo['transacciones']['total_gastos'],
-                    'total_ingresos': contexto_completo['transacciones']['total_ingresos'],
-                    'balance_neto': contexto_completo['transacciones']['balance_neto'],
-                }
-            }, ensure_ascii=False, indent=2)
-        
-        return '{}'
-    
-    @classmethod
-    def generar_feedback_usuario(cls, usuario_id: int, secciones: list = None, trigger: str = 'manual') -> dict:
-        """Genera feedback para todas o algunas secciones de un usuario"""
-        secciones = secciones or SECCIONES
-        contexto = cls.obtener_contexto_completo(usuario_id)
-        resultados = {}
-        
-        for idx, seccion in enumerate(secciones):
-            try:
-                contexto_seccion = cls._construir_contexto_seccion(contexto, seccion)
-                prompt = PROMPTS[seccion].format(
-                    contexto=contexto_seccion,
-                    contexto_cuentas=contexto_seccion if seccion == 'cuentas' else '',
-                    contexto_gastos=contexto_seccion if seccion == 'gastos' else '',
-                    contexto_metas=contexto_seccion if seccion == 'metas' else '',
-                    contexto_suscripciones=contexto_seccion if seccion == 'suscripciones' else '',
-                    contexto_reportes=contexto_seccion if seccion == 'reportes' else '',
-                )
-                
-                respuesta, tokens = get_llm_client().completar(prompt)
-                
-                FeedbackIA.objects.update_or_create(
-                    usuario_id=usuario_id,
-                    seccion=seccion,
-                    defaults={
-                        'contenido': respuesta,
-                        'tokens_usados': tokens,
-                        'trigger': trigger,
-                    }
-                )
-                resultados[seccion] = respuesta
-                
-            except Exception as e:
-                resultados[seccion] = f"Error generando feedback: {str(e)}"
-            
-            # small delay between sections to avoid rate limits
-            if idx < len(secciones) - 1:
-                time.sleep(1)
-        
-        return resultados
-    
-    @classmethod
-    def debe_actualizar_por_evento(cls, usuario_id: int, evento_tipo: str, contexto_adicional: dict = None) -> bool:
-        """Determina si debe regenerar feedback basado en el tipo de evento"""
-        # Eventos que SÍ disparan feedback inmediato
-        if evento_tipo in ['new_meta', 'new_suscripcion', 'large_gasto', 'meta_cumplida']:
-            return True
-        
-        # Weekly: solo si pasó una semana desde la última actualización
-        if evento_tipo == 'weekly':
-            ultimo = FeedbackIA.objects.filter(usuario_id=usuario_id).order_by('-actualizado_en').first()
-            if not ultimo:
-                return True
-            dias_desde_actualizacion = (timezone.now() - ultimo.actualizado_en).days
-            return dias_desde_actualizacion >= 7
-        
-        # Pequeños gastos/transferencias: NO disparan
-        return False
-    
-    @classmethod
-    def verificar_gasto_grande(cls, usuario_id: int, cuenta_id: int, monto: Decimal) -> bool:
-        """Verifica si un gasto supera el umbral porcentaje del saldo disponible"""
-        try:
-            cuenta = CuentaBancaria.objects.get(pk=cuenta_id, usuario_id=usuario_id)
-            metas = cuenta.metas_ahorro.all()
-            reservado = sum(m.monto_actual for m in metas)
-            disponible = max(Decimal('0'), cuenta.saldo - reservado)
-            
-            if disponible > 0:
-                porcentaje = monto / disponible
-                return porcentaje >= UMBRAL_GASTO_GRANDE_PORCENTAJE
-        except CuentaBancaria.DoesNotExist:
-            pass
-        return False
-    
-    @classmethod
-    def obtener_feedback_usuario(cls, usuario_id: int, seccion: str = None) -> dict:
-        """Obtiene feedback guardado del usuario"""
-        qs = FeedbackIA.objects.filter(usuario_id=usuario_id)
-        if seccion:
-            qs = qs.filter(seccion=seccion)
-        
-        return {f.seccion: {
-            'contenido': f.contenido,
-            'tokens_usados': f.tokens_usados,
-            'trigger': f.trigger,
-            'actualizado_en': f.actualizado_en.isoformat(),
-        } for f in qs}
-
-    @staticmethod
-    def _hash_context(ctx: dict) -> str:
-        """Genera un hash SHA256 del contexto serializado ordenado."""
-        serialized = json.dumps(ctx, sort_keys=True, ensure_ascii=False)
-        return hashlib.sha256(serialized.encode('utf-8')).hexdigest()
-
-    @classmethod
-    def build_full_context(cls, usuario_id: int) -> dict:
-        """Obtiene el contexto completo y le añade context_hash."""
-        contexto = cls.obtener_contexto_completo(usuario_id)
-        contexto['context_hash'] = cls._hash_context(contexto)
-        return contexto
-
-    @staticmethod
-    def _parse_master_answer(answer: str) -> dict:
-        """Divide la respuesta maestra en las seis secciones esperadas."""
-        sections = {}
-        current = None
-        lines = answer.splitlines()
-        for line in lines:
-            stripped = line.strip()
-            if stripped.upper().replace('**', '').endswith(':') and stripped.upper().replace('**', '')[:-1] in ('GENERAL','CUENTAS','GASTOS','METAS','SUSCRIPCIONES','REPORTES'):
-                current = stripped.upper()[:-1].lower()
-                sections[current] = ''
-            elif current:
-                sections[current] += line + '\n'
-        # strip trailing newlines
-        for k in sections:
-            sections[k] = sections[k].strip()
-        return sections
-
-    @classmethod
-    def generate_full_feedback(cls, usuario_id: int, force: bool = False) -> dict:
-        """Genera feedback de las seis secciones en una sola llamada al LLM, con caché por hash de contexto."""
-        full_ctx = cls.build_full_context(usuario_id)
-        ctx_hash = full_ctx.pop('context_hash')
-        # check cache
-        cached = FeedbackCache.objects.filter(usuario_id=usuario_id, context_hash=ctx_hash).first()
-        if cached and not force:
-            return cached.payload
-
-        # prepare master prompt
-        prompt = MASTER_PROMPT.format(context=json.dumps(full_ctx, ensure_ascii=False, indent=2))
-        
-        try:
-            respuesta, tokens = get_llm_client().completar(prompt, max_tokens=1500)
-            sections = cls._parse_master_answer(respuesta)
-        except Exception as e:
-            # Return error for all sections if LLM call fails
-            error_msg = f"Error generando feedback: {str(e)}"
-            sections = {sec: error_msg for sec in SECCIONES}
-            # Don't persist/cache failed sections
-            return sections
-
-        # persist each section in FeedbackIA
-        for sec, txt in sections.items():
-            FeedbackIA.objects.update_or_create(
-                usuario_id=usuario_id,
-                seccion=sec,
-                defaults={
-                    'contenido': txt,
-                    'tokens_usados': tokens // max(1, len(sections)),  # approx split
-                    'trigger': 'manual',
-                }
-            )
-        # save cache
-        FeedbackCache.objects.update_or_create(
-            usuario_id=usuario_id,
-            context_hash=ctx_hash,
-            defaults={'payload': sections}
-        )
-        return sections
